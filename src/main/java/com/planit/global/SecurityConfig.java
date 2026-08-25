@@ -75,6 +75,11 @@ public class SecurityConfig {
 			.httpBasic(basic -> basic.disable())
 			.logout(logout -> logout.disable())
 			.authorizeHttpRequests(auth -> auth
+				// 목업 화면(정적 리소스, planit-mockup.html 기반). 로그인 화면 자체는 로그인 없이도 볼 수 있어야 한다.
+				.requestMatchers(
+					"/", "/index.html", "/favicon.ico",
+					"/*.css", "/*.js", "/*.ico", "/*.png", "/*.svg"
+				).permitAll()
 				.requestMatchers(
 					"/api/auth/signup",
 					"/api/auth/login",
