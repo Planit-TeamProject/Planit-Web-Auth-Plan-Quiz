@@ -64,6 +64,8 @@ public class MemberDetails implements UserDetails {
 
 	@Override
 	public boolean isEnabled() {
-		return member.isEmailVerified();
+		// [임시] 이메일 인증 없이 로그인 허용하도록 주석 처리 (원복 시 아래 줄 복구)
+		// return member.isEmailVerified();
+		return true;
 	}
 }

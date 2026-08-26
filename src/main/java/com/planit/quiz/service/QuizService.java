@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.planit.global.exception.BusinessException;
 import com.planit.global.exception.ErrorCode;
 import com.planit.member.entity.Member;
+import com.planit.quiz.dto.QuizPreviewResponse;
 import com.planit.quiz.dto.QuizResponse;
 import com.planit.quiz.dto.QuizResultSummaryResponse;
 import com.planit.quiz.dto.QuizStartRequest;
@@ -70,6 +71,26 @@ public class QuizService {
 
 		quizRepository.save(quiz);
 		return QuizResponse.from(quiz);
+	}
+
+	/**
+	 * [테스트용] 학습 계획/저장 없이, 넘긴 학습 범위로 문제만 생성해 돌려준다.
+	 * "제이슨 목록으로 퀴즈가 만들어지는지" 확인하는 용도. 배포 전 제거할 것.
+	 */
+	public QuizPreviewResponse preview(String subjectName, String todayScope) {
+		String subject = (subjectName == null || subjectName.isBlank()) ? "테스트 과목" : subjectName;
+
+		List<GeneratedQuestion> generated = quizQuestionGenerator.generate(subject, todayScope);
+
+		int questionNo = 1;
+		List<QuizPreviewResponse.Question> questions = new java.util.ArrayList<>();
+		for (GeneratedQuestion g : generated) {
+			questions.add(new QuizPreviewResponse.Question(
+				questionNo++, g.questionType(), g.questionText(),
+				g.choice1(), g.choice2(), g.choice3(), g.choice4(), g.answerNo(), g.explanation()
+			));
+		}
+		return new QuizPreviewResponse(todayScope, questions);
 	}
 
 	@Transactional(readOnly = true)

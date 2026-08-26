@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.planit.member.service.MemberDetails;
+import com.planit.quiz.dto.QuizPreviewRequest;
+import com.planit.quiz.dto.QuizPreviewResponse;
 import com.planit.quiz.dto.QuizResponse;
 import com.planit.quiz.dto.QuizResultSummaryResponse;
 import com.planit.quiz.dto.QuizStartRequest;
@@ -31,6 +33,15 @@ import lombok.RequiredArgsConstructor;
 public class QuizController {
 
 	private final QuizService quizService;
+
+	/**
+	 * [테스트용] 학습 계획/로그인 없이 문제 생성만 확인한다 (DB 저장 안 함).
+	 * SecurityConfig 에서 permitAll 로 열어두었다. 실제 배포 전 이 엔드포인트와 관련 DTO/서비스 코드를 제거할 것.
+	 */
+	@PostMapping("/preview")
+	public ResponseEntity<QuizPreviewResponse> preview(@Valid @RequestBody QuizPreviewRequest request) {
+		return ResponseEntity.ok(quizService.preview(request.subjectName(), request.todayScope()));
+	}
 
 	/** REQ-Q-001 ~ REQ-Q-003 */
 	@PostMapping

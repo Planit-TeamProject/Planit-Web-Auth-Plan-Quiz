@@ -78,7 +78,7 @@ public class SecurityConfig {
 				// 목업 화면(정적 리소스, planit-mockup.html 기반). 로그인 화면 자체는 로그인 없이도 볼 수 있어야 한다.
 				.requestMatchers(
 					"/", "/index.html", "/favicon.ico",
-					"/*.css", "/*.js", "/*.ico", "/*.png", "/*.svg"
+					"/*.css", "/*.js", "/*.ico", "/*.png", "/*.svg", "/*.json"
 				).permitAll()
 				.requestMatchers(
 					"/api/auth/signup",
@@ -86,6 +86,8 @@ public class SecurityConfig {
 					"/api/auth/email-verification",
 					"/api/auth/email-verification/resend"
 				).permitAll()
+				// [테스트용] 학습 계획/로그인 없이 퀴즈 문제 생성만 확인하는 임시 엔드포인트. 배포 전 제거할 것.
+				.requestMatchers("/api/quizzes/preview").permitAll()
 				.anyRequest().authenticated()
 			)
 			// 로그인 안 된 상태로 보호된 API 를 호출하면 로그인 화면으로 리다이렉트하지 않고,

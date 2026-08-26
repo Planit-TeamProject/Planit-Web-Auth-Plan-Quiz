@@ -375,6 +375,53 @@
   .badge.locked .ic{ background:var(--paper-alt); filter:grayscale(1); opacity:0.5;}
   .badge .lbl{ font-size:11px; color:var(--ink-soft); }
 
+  /* =====================================================
+     6. QUIZ BOT (QZ-001)
+  ===================================================== */
+  .quiz-wrap{ max-width:760px; margin:0 auto; padding:56px 24px 90px; }
+  .quiz-wrap h2{ font-family:var(--display); font-size:30px; margin:0 0 8px; }
+  .quiz-wrap .lead{ color:var(--ink-soft); font-size:15px; line-height:1.6; margin-bottom:26px; }
+  .quiz-card{ background:var(--card); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); padding:26px; margin-bottom:18px; }
+  .quiz-start-actions{ display:flex; justify-content:space-between; align-items:center; gap:10px; margin-top:4px; }
+  .dayone-box{
+    border:1.5px solid var(--border); border-radius:10px; background:#fff; padding:12px 14px;
+    display:flex; flex-direction:column; gap:8px;
+  }
+  .dayone-date{ font-family:var(--mono); font-size:11.5px; color:var(--sage); font-weight:600; }
+  .dayone-item{ display:flex; justify-content:space-between; align-items:baseline; gap:10px; font-size:13.5px; }
+  .dayone-item .t{ font-weight:600; }
+  .dayone-item .m{ font-family:var(--mono); font-size:11px; color:var(--ink-soft); flex:0 0 auto; }
+  .dayone-box.empty{ color:var(--ink-soft); font-size:13px; }
+  .q-head{ display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+  .q-badge{ font-family:var(--mono); font-size:11px; font-weight:600; padding:4px 10px; border-radius:100px; }
+  .q-badge.basic{ background:var(--sage-soft); color:var(--sage); }
+  .q-badge.applied{ background:var(--gold-soft); color:#9a6b12; }
+  .q-no{ font-family:var(--mono); font-size:12px; color:var(--ink-soft); }
+  .q-text{ font-size:15px; line-height:1.7; font-weight:600; margin-bottom:16px; }
+  .q-choices{ display:flex; flex-direction:column; gap:8px; }
+  .q-choice{
+    font-family:var(--body); text-align:left; border:1.5px solid var(--border); background:#fff;
+    border-radius:10px; padding:12px 14px; font-size:14px; cursor:pointer;
+    transition:border-color .12s ease, background .12s ease;
+  }
+  .q-choice:hover:not(:disabled){ border-color:var(--gold); }
+  .q-choice.selected{ border-color:var(--ink); background:var(--paper-alt); font-weight:600; }
+  .q-choice.correct{ border-color:var(--sage); background:var(--sage-soft); color:var(--sage); font-weight:600; }
+  .q-choice.wrong{ border-color:var(--coral); background:var(--coral-soft); color:var(--coral); font-weight:600; }
+  .q-choice:disabled{ cursor:default; }
+  .q-submit-row{ display:flex; justify-content:flex-end; margin-top:14px; }
+  .q-result{ margin-top:14px; padding:14px 16px; border-radius:10px; font-size:13.5px; line-height:1.65; display:none; }
+  .q-result.show{ display:block; }
+  .q-result.o{ background:var(--sage-soft); }
+  .q-result.x{ background:var(--coral-soft); }
+  .q-result .verdict{ font-weight:700; display:block; margin-bottom:4px; }
+  .quiz-summary{ display:none; text-align:center; background:var(--ink); color:#fff; border-radius:var(--radius); padding:32px; }
+  .quiz-summary.show{ display:block; }
+  .quiz-summary .score{ font-family:var(--display); font-size:40px; font-weight:700; color:var(--gold); }
+  .quiz-summary .score-label{ font-size:13px; color:#C9CEDB; margin-top:8px; }
+  .quiz-error{ display:none; color:#dc2626; font-size:13px; margin:10px 0 0; }
+  .quiz-error.show{ display:block; }
+
   @media (max-width: 860px){
     .feature-grid{ grid-template-columns:1fr; }
     .badge-grid{ grid-template-columns:repeat(3,1fr); }
@@ -397,6 +444,7 @@
   <button data-target="screen-4">4. 플랜 생성</button>
   <button data-target="screen-5">5. 메인(캘린더)</button>
   <button data-target="screen-7">6. 마이페이지</button>
+  <button data-target="screen-6">7. 퀴즈봇</button>
 </div>
 
 <!-- ============ 1. LANDING ============ -->
@@ -405,6 +453,8 @@
     <div class="logo"><span class="dot"></span>Planit</div>
     <div class="nav-actions">
       <button class="btn btn-ghost" data-go="screen-2">로그인</button>
+      <!-- 로그아웃 테스트용 버튼 (REQ-A-012). 클릭 시 서버 세션을 없애고 이 초기화면으로 돌아온다. -->
+      <button class="btn btn-ghost" id="logout-btn">로그아웃</button>
       <button class="btn btn-gold" data-go="screen-3">회원가입</button>
     </div>
   </nav>
@@ -484,9 +534,10 @@
       <div class="auth-form">
         <h2>다시 만나서 반가워요</h2>
         <div class="sub">로그인하고 이어서 계획을 확인하세요.</div>
-        <div class="field"><label>이메일</label><input type="email" placeholder="you@example.com"></div>
-        <div class="field"><label>비밀번호</label><input type="password" placeholder="••••••••"></div>
-        <button class="btn btn-primary" style="width:100%;" data-go="screen-5">로그인</button>
+        <div class="field"><label>이메일</label><input type="email" id="login-email" placeholder="you@example.com"></div>
+        <div class="field"><label>비밀번호</label><input type="password" id="login-password" placeholder="••••••••"></div>
+        <div id="login-error" style="display:none;color:#dc2626;font-size:13px;margin:-8px 0 12px;"></div>
+        <button class="btn btn-primary" style="width:100%;" id="login-submit-btn">로그인</button>
         <div class="divider-text">또는</div>
         <button class="btn btn-ghost" style="width:100%;">Google로 계속하기</button>
         <div class="switch-line">계정이 없으신가요? <a data-go="screen-3" style="cursor:pointer;">회원가입</a></div>
@@ -502,11 +553,12 @@
       <div class="auth-form">
         <h2>계정을 만들어요</h2>
         <div class="sub">1분이면 충분해요. 바로 로그인 화면으로 이동해요.</div>
-        <div class="field"><label>이름</label><input type="text" placeholder="홍길동"></div>
-        <div class="field"><label>이메일</label><input type="email" placeholder="you@example.com"></div>
-        <div class="field"><label>비밀번호</label><input type="password" placeholder="8자 이상"></div>
-        <div class="field"><label>비밀번호 확인</label><input type="password" placeholder="다시 입력"></div>
-        <button class="btn btn-gold" style="width:100%;" data-go="screen-2">회원가입 완료</button>
+        <div class="field"><label>이름</label><input type="text" id="signup-name" placeholder="홍길동"></div>
+        <div class="field"><label>이메일</label><input type="email" id="signup-email" placeholder="you@example.com"></div>
+        <div class="field"><label>비밀번호</label><input type="password" id="signup-password" placeholder="8자 이상"></div>
+        <div class="field"><label>비밀번호 확인</label><input type="password" id="signup-password-confirm" placeholder="다시 입력"></div>
+        <div id="signup-error" style="display:none;color:#dc2626;font-size:13px;margin:-8px 0 12px;"></div>
+        <button class="btn btn-gold" style="width:100%;" id="signup-submit-btn">회원가입 완료</button>
         <div class="switch-line">이미 계정이 있으신가요? <a data-go="screen-2" style="cursor:pointer;">로그인</a></div>
       </div>
     </div>
@@ -886,6 +938,40 @@
   </div>
 </section>
 
+<!-- ============ 6. QUIZ BOT (QZ-001) ============ -->
+<section class="screen" id="screen-6">
+  <div class="quiz-wrap">
+    <h2>오늘의 퀴즈</h2>
+    <div class="lead">
+      study_plan.json 의 <b>1일차</b> 학습 범위로 4지선다 3문제(쉬운 문제 2 + 응용 1)를 만듭니다.<br>
+      아래 오늘의 일과를 확인하고 '퀴즈 시작'을 누르세요. (로그인·학습 계획 없이 동작 / 결과는 저장되지 않음)
+    </div>
+
+    <!-- study_plan.json 의 days[0](1일차) 항목으로 문제를 만든다. 서버에 저장하지 않는 테스트 흐름:
+         POST /api/quizzes/preview (permitAll) 로 문제만 생성하고, 채점은 화면에서 처리한다. -->
+    <div class="quiz-card" id="quiz-start-card">
+      <div class="field" style="margin-bottom:8px;">
+        <label>오늘의 일과 (study_plan.json 1일차)</label>
+        <div id="quiz-dayone" class="dayone-box">불러오는 중…</div>
+      </div>
+      <div class="quiz-error" id="quiz-error"></div>
+      <div class="quiz-start-actions">
+        <button class="btn btn-ghost" id="quiz-reload-btn" type="button">다시 불러오기</button>
+        <button class="btn btn-gold" id="quiz-start-btn">퀴즈 시작</button>
+      </div>
+    </div>
+
+    <!-- 시작하면 문제 카드들이 여기에 채워진다 -->
+    <div id="quiz-questions"></div>
+
+    <!-- 3문제를 모두 제출하면 나타나는 결과 요약 (REQ-Q-006) -->
+    <div class="quiz-summary" id="quiz-summary">
+      <div class="score" id="quiz-score">–</div>
+      <div class="score-label" id="quiz-score-label">3문제 중 정답 수</div>
+    </div>
+  </div>
+</section>
+
 <script>
   function go(id){
     document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
@@ -893,6 +979,7 @@
     document.querySelectorAll('.switcher button').forEach(b=>b.classList.toggle('active', b.dataset.target===id));
     toggleAccountSidebar(false);
     window.scrollTo({top:0});
+    if(id === 'screen-6') loadDayOne();   // 퀴즈봇 화면 진입: study_plan.json 1일차를 불러온다
   }
   document.querySelectorAll('.switcher button').forEach(b=>{
     b.addEventListener('click', ()=>go(b.dataset.target));
@@ -962,6 +1049,331 @@
     toastEl.classList.add('show');
     clearTimeout(toastTimer);
     toastTimer = setTimeout(()=> toastEl.classList.remove('show'), 2600);
+  }
+
+  /* ===== 실제 백엔드 연동 (회원가입/로그인) ===== */
+  const API_BASE = '';
+
+  async function callApi(path, options){
+    const res = await fetch(API_BASE + path, Object.assign({
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' }
+    }, options));
+    let body = null;
+    try { body = await res.json(); } catch(e) { /* 응답 본문이 없을 수 있음 */ }
+    if(!res.ok){
+      const message = (body && body.message) ? body.message : ('요청이 실패했습니다 (' + res.status + ')');
+      throw new Error(message);
+    }
+    return body;
+  }
+
+  function showFieldError(elId, message){
+    const el = document.getElementById(elId);
+    el.textContent = message;
+    el.style.display = message ? 'block' : 'none';
+  }
+
+  const signupBtn = document.getElementById('signup-submit-btn');
+  if(signupBtn){
+    signupBtn.addEventListener('click', async () => {
+      showFieldError('signup-error', '');
+      const name = document.getElementById('signup-name').value.trim();
+      const email = document.getElementById('signup-email').value.trim();
+      const password = document.getElementById('signup-password').value;
+      const passwordConfirm = document.getElementById('signup-password-confirm').value;
+
+      signupBtn.disabled = true;
+      try {
+        await callApi('/api/auth/signup', {
+          method: 'POST',
+          body: JSON.stringify({ name, email, password, passwordConfirm })
+        });
+        showToast('가입 완료! 이메일 인증 후 로그인해 주세요.');
+        document.getElementById('login-email').value = email;
+        go('screen-2');
+      } catch (err) {
+        showFieldError('signup-error', err.message);
+      } finally {
+        signupBtn.disabled = false;
+      }
+    });
+  }
+
+  const loginBtn = document.getElementById('login-submit-btn');
+  if(loginBtn){
+    loginBtn.addEventListener('click', async () => {
+      showFieldError('login-error', '');
+      const email = document.getElementById('login-email').value.trim();
+      const password = document.getElementById('login-password').value;
+
+      loginBtn.disabled = true;
+      try {
+        const member = await callApi('/api/auth/login', {
+          method: 'POST',
+          body: JSON.stringify({ email, password })
+        });
+        window.currentMember = member;
+        showToast('로그인 성공! 환영합니다, ' + member.name + '님');
+        go('screen-5');
+      } catch (err) {
+        showFieldError('login-error', err.message);
+      } finally {
+        loginBtn.disabled = false;
+      }
+    });
+  }
+
+  /* ===== 로그아웃 (REQ-A-012) =====
+     서버에 POST /api/auth/logout 을 호출해 세션을 없앤 뒤,
+     초기화면(screen-1, 메인페이지)으로 이동한다.
+     초기화면 상단 '로그인' 버튼 옆의 '로그아웃' 버튼에서 호출된다. */
+  const logoutBtn = document.getElementById('logout-btn');
+  if(logoutBtn){
+    logoutBtn.addEventListener('click', async () => {
+      logoutBtn.disabled = true;
+      try {
+        await callApi('/api/auth/logout', { method: 'POST' });
+        showToast('로그아웃되었습니다.');
+      } catch (err) {
+        // 이미 로그아웃된 상태(세션 없음)일 수도 있으니 메시지만 보여준다.
+        showToast(err.message);
+      } finally {
+        window.currentMember = null;
+        logoutBtn.disabled = false;
+        go('screen-1');   // 초기화면(메인페이지)로 이동
+      }
+    });
+  }
+
+  /* ===== 퀴즈봇 (REQ-Q-001 ~ REQ-Q-006) / 화면 QZ-001 =====
+     흐름: 퀴즈 시작(start) → 문제별 제출(submit)로 그 자리에서 채점·풀이 확인 → 3문제 다 풀면 요약(summary).
+     서버 API 는 QuizController 가 처리하며, 모두 로그인이 필요하다. */
+  const quizState = { quizId: null, total: 0, answered: 0 };
+
+  // study_plan.json 1일차에서 뽑아낸 "오늘 학습한 범위" 문자열. loadDayOne() 이 채운다.
+  let quizDayOneScope = '';
+
+  // [테스트용] '문제만 생성' 으로 만든 퀴즈인지. true 면 서버 채점 대신 화면에서 바로 채점한다.
+  let quizPreviewMode = false;
+  let quizPreviewMeta = {};     // { 문제번호: { answerNo, explanation } }
+  let quizLocalCorrect = 0;     // 테스트 모드에서 맞힌 개수
+
+  function showQuizError(message){
+    const el = document.getElementById('quiz-error');
+    el.textContent = message || '';
+    el.classList.toggle('show', !!message);
+  }
+
+  /* study_plan.json 을 읽어 days[0](1일차)만 화면에 보여주고, 그 항목들을 퀴즈 출제 범위로 쓴다.
+     - 표시: "제목  |  페이지범위 · 상태"
+     - 서버 전송용 todayScope: "운영체제의 개요(14~21p), 리눅스의 기초(22~37p)" 형태 */
+  async function loadDayOne(){
+    const box = document.getElementById('quiz-dayone');
+    if(!box) return;
+    box.classList.remove('empty');
+    box.textContent = '불러오는 중…';
+    try {
+      const res = await fetch('/study_plan.json', { credentials: 'include' });
+      if(!res.ok) throw new Error('study_plan.json 을 불러오지 못했습니다 (' + res.status + ')');
+      const plan = await res.json();
+      const day1 = plan.days && plan.days[0];
+
+      if(!day1 || !Array.isArray(day1.items) || day1.items.length === 0){
+        quizDayOneScope = '';
+        box.classList.add('empty');
+        box.textContent = '1일차 학습 항목이 없습니다.';
+        return;
+      }
+
+      quizDayOneScope = day1.items
+        .map(it => it.pageRange ? it.title + '(' + it.pageRange + ')' : it.title)
+        .join(', ');
+
+      box.innerHTML =
+        '<div class="dayone-date">1일차 · ' + day1.date + ' · ' + day1.minutes + '분</div>' +
+        day1.items.map(it =>
+          '<div class="dayone-item">' +
+            '<span class="t">' + it.title + '</span>' +
+            '<span class="m">' + (it.pageRange ? it.pageRange + ' · ' : '') + it.status + '</span>' +
+          '</div>'
+        ).join('');
+    } catch (err) {
+      quizDayOneScope = '';
+      box.classList.add('empty');
+      box.textContent = err.message;
+    }
+  }
+
+  const quizReloadBtn = document.getElementById('quiz-reload-btn');
+  if(quizReloadBtn){
+    quizReloadBtn.addEventListener('click', () => { showQuizError(''); loadDayOne(); });
+  }
+
+  /* 퀴즈 시작: study_plan.json 1일차 범위로 문제만 생성한다 (POST /api/quizzes/preview).
+     로그인/학습 계획 불필요, 서버 저장 없음. 채점은 showQuestionResult 가 화면에서 처리한다. */
+  const quizStartBtn = document.getElementById('quiz-start-btn');
+  if(quizStartBtn){
+    quizStartBtn.addEventListener('click', async () => {
+      showQuizError('');
+      const todayScope = quizDayOneScope;
+
+      if(!todayScope){
+        showQuizError('오늘의 일과를 먼저 불러와 주세요.');
+        return;
+      }
+
+      quizStartBtn.disabled = true;
+      try {
+        // REQ-Q-002, REQ-Q-003: 1일차 학습 범위로 BASIC 2 + APPLIED 1 문제 생성
+        const preview = await callApi('/api/quizzes/preview', {
+          method: 'POST',
+          body: JSON.stringify({ subjectName: '테스트', todayScope })
+        });
+        renderQuiz({ id: null, questions: preview.questions }, true);
+      } catch (err) {
+        showQuizError(err.message);
+      } finally {
+        quizStartBtn.disabled = false;
+      }
+    });
+  }
+
+  /* 문제 목록을 화면 카드로 그린다.
+     preview=false: 서버가 준 문제(정답/풀이 없음). 제출은 서버가 채점.
+     preview=true : 테스트 응답(정답/풀이 포함). 제출은 화면에서 바로 채점. */
+  function renderQuiz(quiz, preview){
+    quizPreviewMode = !!preview;
+    quizPreviewMeta = {};
+    quizLocalCorrect = 0;
+    quizState.quizId = quiz.id;
+    quizState.total = quiz.questions.length;
+    quizState.answered = 0;
+
+    document.getElementById('quiz-summary').classList.remove('show');
+
+    const wrap = document.getElementById('quiz-questions');
+    wrap.innerHTML = quiz.questions.map(q => {
+      if(preview) quizPreviewMeta[q.questionNo] = { answerNo: q.answerNo, explanation: q.explanation };
+      const applied = q.questionType === 'APPLIED';
+      const choices = [q.choice1, q.choice2, q.choice3, q.choice4];
+      const idAttr = preview ? `data-question-no="${q.questionNo}"` : `data-question-id="${q.id}"`;
+      return `
+        <div class="quiz-card" ${idAttr}>
+          <div class="q-head">
+            <span class="q-badge ${applied ? 'applied' : 'basic'}">${applied ? '응용' : '기본'}</span>
+            <span class="q-no">${q.questionNo} / ${quizState.total}</span>
+          </div>
+          <div class="q-text">${q.questionText}</div>
+          <div class="q-choices">
+            ${choices.map((c, i) => `<button class="q-choice" data-choice="${i + 1}">${i + 1}. ${c}</button>`).join('')}
+          </div>
+          <div class="q-submit-row">
+            <button class="btn btn-primary q-submit" disabled>제출</button>
+          </div>
+          <div class="q-result"></div>
+        </div>`;
+    }).join('');
+
+    wrap.querySelectorAll('.quiz-card').forEach(setupQuestionCard);
+    wrap.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  /* 카드 하나에 대한 보기 선택 / 제출 동작을 연결한다. */
+  function setupQuestionCard(card){
+    const choiceBtns = card.querySelectorAll('.q-choice');
+    const submitBtn = card.querySelector('.q-submit');
+    let selectedChoice = null;
+
+    choiceBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        if(card.dataset.answered) return;   // 제출 후에는 변경 불가
+        selectedChoice = Number(btn.dataset.choice);
+        choiceBtns.forEach(b => b.classList.toggle('selected', b === btn));
+        submitBtn.disabled = false;
+      });
+    });
+
+    submitBtn.addEventListener('click', async () => {
+      if(selectedChoice == null || card.dataset.answered) return;
+      submitBtn.disabled = true;
+      try {
+        let result;
+        if(quizPreviewMode){
+          // 테스트 모드: 서버 호출 없이 화면에서 바로 채점
+          const meta = quizPreviewMeta[Number(card.dataset.questionNo)];
+          result = {
+            correct: selectedChoice === meta.answerNo,
+            answerNo: meta.answerNo,
+            explanation: meta.explanation
+          };
+          if(result.correct) quizLocalCorrect += 1;
+        } else {
+          // REQ-Q-004, REQ-Q-005: 문제 하나 제출 → 정답 여부 + 정답 번호 + 풀이 응답
+          const questionId = card.dataset.questionId;
+          result = await callApi(`/api/quizzes/questions/${questionId}/answers`, {
+            method: 'POST',
+            body: JSON.stringify({ selectedChoice })
+          });
+        }
+        showQuestionResult(card, selectedChoice, result);
+      } catch (err) {
+        submitBtn.disabled = false;
+        showQuizError(err.message);
+      }
+    });
+  }
+
+  /* 채점 결과를 카드에 반영: 정답은 초록, 내가 고른 오답은 빨강, 아래에 풀이 표시. */
+  function showQuestionResult(card, selectedChoice, result){
+    card.dataset.answered = 'true';
+    quizState.answered += 1;
+
+    card.querySelectorAll('.q-choice').forEach(btn => {
+      const no = Number(btn.dataset.choice);
+      btn.disabled = true;
+      btn.classList.remove('selected');
+      if(no === result.answerNo) btn.classList.add('correct');
+      else if(no === selectedChoice) btn.classList.add('wrong');
+    });
+    card.querySelector('.q-submit').style.display = 'none';
+
+    const box = card.querySelector('.q-result');
+    box.className = 'q-result show ' + (result.correct ? 'o' : 'x');
+    const verdict = result.correct
+      ? '⭕ 정답이에요!'
+      : `❌ 오답이에요. 정답은 ${result.answerNo}번입니다.`;
+    box.innerHTML = `<span class="verdict">${verdict}</span>${result.explanation}`;
+
+    if(quizState.answered === quizState.total){
+      if(quizPreviewMode) showLocalSummary();
+      else loadQuizSummary();
+    }
+  }
+
+  /* [테스트용] 화면에서 채점한 결과 요약 (서버 저장 없음). */
+  function showLocalSummary(){
+    document.getElementById('quiz-score').textContent = `${quizLocalCorrect} / ${quizState.total}`;
+    document.getElementById('quiz-score-label').textContent =
+      `테스트 미리보기 · ${quizState.total}문제 중 ${quizLocalCorrect}문제 정답 (저장되지 않음)`;
+    const box = document.getElementById('quiz-summary');
+    box.classList.add('show');
+    box.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  /* REQ-Q-006: 3문제를 모두 제출하면 맞힌 개수를 요약해 보여준다. */
+  async function loadQuizSummary(){
+    try {
+      const s = await callApi(`/api/quizzes/${quizState.quizId}/summary`);
+      document.getElementById('quiz-score').textContent = `${s.correctCount} / ${s.totalQuestionCount}`;
+      document.getElementById('quiz-score-label').textContent =
+        `${s.answeredCount}문제 제출 · ${s.correctCount}문제 정답`;
+      const box = document.getElementById('quiz-summary');
+      box.classList.add('show');
+      box.scrollIntoView({ behavior: 'smooth' });
+    } catch (err) {
+      showQuizError(err.message);
+    }
   }
 
   function setupCalendarDnD(){

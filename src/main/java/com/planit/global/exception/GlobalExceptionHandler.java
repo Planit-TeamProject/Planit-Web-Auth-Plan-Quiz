@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -89,6 +90,21 @@ public class GlobalExceptionHandler {
 			.body(ErrorResponse.builder()
 				.code(errorCode.name())
 				.message(errorCode.getMessage())
+				.build());
+	}
+
+	/**
+	 * 존재하지 않는 정적 리소스 요청 (예: 브라우저가 자동으로 요청하는 /favicon.ico).
+	 * 따로 안 잡으면 아래 handleException 으로 떨어져 ERROR 스택트레이스가 매 요청마다 찍힌다.
+	 * 실제 장애가 아니므로 404 만 조용히 내려준다.
+	 */
+	@ExceptionHandler(NoResourceFoundException.class)
+	public ResponseEntity<ErrorResponse> handleNoResourceFound(NoResourceFoundException e) {
+		log.debug("[NoResourceFoundException] {}", e.getResourcePath());
+		return ResponseEntity.status(HttpStatus.NOT_FOUND)
+			.body(ErrorResponse.builder()
+				.code(HttpStatus.NOT_FOUND.name())
+				.message("요청한 리소스를 찾을 수 없습니다")
 				.build());
 	}
 

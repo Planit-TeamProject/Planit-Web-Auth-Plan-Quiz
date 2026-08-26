@@ -27,13 +27,17 @@ import com.planit.member.repository.MemberRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 회원가입 / 로그인 / 로그아웃 (REQ-A-001 ~ REQ-A-015).
  *
  * 각 메서드는 02_요구사항정의서.xlsx 에 적힌 순서 그대로 조건을 검사한다.
  * 순서를 바꾸면 요구사항정의서와 어긋나므로, 검증 순서를 바꿔야 한다면 문서도 함께 갱신할 것.
+ *
+ * 회원가입/로그인/로그아웃의 성공·실패는 [AUTH] 태그를 붙여 로그로 남긴다. (REQ-NF-016)
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -78,8 +82,10 @@ public class AuthService {
 		memberRepository.save(member);
 
 		// REQ-A-006: 회원가입 완료 시 인증 메일 발송, 인증 전까지 로그인 제한
-		emailVerificationService.sendVerification(member);
+		// [임시] 이메일 인증 비활성화 - 인증 메일 발송 주석 처리 (원복 시 아래 줄 복구)
+		// emailVerificationService.sendVerification(member);
 
+		log.info("[AUTH] 회원가입 완료 - email={}, name={}", member.getEmail(), member.getName());
 		return MemberResponse.from(member);
 	}
 
@@ -100,13 +106,16 @@ public class AuthService {
 				new UsernamePasswordAuthenticationToken(request.email(), request.password()));
 		} catch (LockedException e) {
 			// REQ-NF-013
+			log.warn("[AUTH] 로그인 실패(계정 잠김) - email={}", request.email());
 			throw new BusinessException(ErrorCode.LOGIN_LOCKED);
 		} catch (DisabledException e) {
 			// REQ-A-015
+			log.warn("[AUTH] 로그인 실패(이메일 미인증) - email={}", request.email());
 			throw new BusinessException(ErrorCode.EMAIL_NOT_VERIFIED);
 		} catch (BadCredentialsException e) {
 			// REQ-A-009 + REQ-NF-013 (실패 횟수 누적)
 			loginFailureRecorder.record(request.email());
+			log.warn("[AUTH] 로그인 실패(이메일 없음 또는 비밀번호 불일치) - email={}", request.email());
 			throw new BusinessException(ErrorCode.LOGIN_FAILED);
 		}
 
@@ -116,13 +125,18 @@ public class AuthService {
 		// REQ-A-011: 세션 발급 (로그인 상태 유지)
 		persistLoginSession(authentication, servletRequest);
 
+		log.info("[AUTH] 로그인 성공 - email={}", memberDetails.getMember().getEmail());
 		return MemberResponse.from(memberDetails.getMember());
 	}
 
 	/** 로그아웃 (REQ-A-012) */
 	public void logout(HttpServletRequest request, HttpServletResponse response) {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		String email = (authentication != null) ? authentication.getName() : "(비로그인)";
+
 		new SecurityContextLogoutHandler().logout(request, response, authentication);
+
+		log.info("[AUTH] 로그아웃 완료 - email={}", email);
 	}
 
 	/** 인증된 Authentication 을 SecurityContext 에 담아 HttpSession 에 저장한다 (REQ-A-011). */
