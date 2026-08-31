@@ -2,42 +2,9 @@ spring:
   application:
     name: planit
 
-  datasource:
-    # 실제 접속 정보는 절대 여기 커밋하지 않습니다.
-    # 로컬에서는 application-local.yml(.gitignore에 포함됨)을 만들어
-    #   spring.profiles.active=local 로 실행하거나,
-    # 환경변수(DB_URL, DB_USERNAME, DB_PASSWORD)로 덮어써서 사용하세요.
-    url: ${DB_URL:jdbc:mysql://localhost:3306/planit?serverTimezone=Asia/Seoul&characterEncoding=UTF-8}
-    username: ${DB_USERNAME:root}
-    password: ${DB_PASSWORD:}
-    driver-class-name: com.mysql.cj.jdbc.Driver
-
-  jpa:
-    hibernate:
-      # 팀 규칙: 실제 테이블은 docs/schema.sql 로 직접 생성/관리합니다.
-      # ddl-auto 는 validate 로 두어 엔티티와 스키마가 어긋나면 바로 에러로 알 수 있게 합니다.
-      ddl-auto: validate
-    open-in-view: false
-    properties:
-      hibernate:
-        format_sql: true
-    show-sql: true
-
-  servlet:
-    multipart:
-      # REQ-NF-017: 목차 업로드 파일은 최대 10MB
-      max-file-size: 10MB
-      max-request-size: 10MB
+# 데이터/인증은 Firebase(Authentication / Firestore / Storage)로 이전됨.
+# 연동은 프론트엔드(frontend/, React)에서 Firebase SDK로 직접 처리한다.
+# 이 Spring 앱은 정적 리소스 서빙만 담당하므로 DB(datasource/JPA) 설정이 없다.
 
 server:
   port: 8080
-
-# 김동호 담당 도메인 공통 설정
-planit:
-  file:
-    upload-dir: ./uploads/toc  # 로컬 개발용 목차 파일 저장 경로 (운영은 팀 협의 후 S3 등으로 교체)
-  email-verification:
-    expire-minutes: 30   # REQ-NF-012: 인증 메일은 발급 후 30분간만 유효
-  login:
-    max-fail-count: 5    # REQ-NF-013: 5회 연속 실패 시 잠금
-    lock-minutes: 1
