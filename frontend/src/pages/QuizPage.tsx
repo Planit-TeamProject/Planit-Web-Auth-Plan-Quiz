@@ -113,71 +113,78 @@ export default function QuizPage() {
     return (
       <main>
         <h1>오늘의 퀴즈</h1>
-        <p role="alert">
-          로그인이 필요합니다. <Link to="/login">로그인하러 가기</Link>
-        </p>
+        <div className="card">
+          <p className="msg-error">
+            로그인이 필요합니다. <Link to="/login">로그인하러 가기</Link>
+          </p>
+        </div>
       </main>
     );
   }
 
   return (
-    <main>
+    <main className="wide">
       <h1>오늘의 퀴즈</h1>
-      <p>
+      <p className="quiz-lead">
         study_plan.json 의 <strong>1일차</strong> 학습 범위로 4지선다 3문제(쉬운 문제 2 + 응용 1)를
         만듭니다. 아래 오늘의 일과를 확인하고 &lsquo;퀴즈 시작&rsquo;을 누르세요.
       </p>
 
-      <section>
+      <div className="card">
         <h2>오늘의 일과 (study_plan.json 1일차)</h2>
-        {loadError && <p role="alert">{loadError}</p>}
+        {loadError && <p className="msg-error">{loadError}</p>}
         {dayMeta && (
-          <p>
+          <p className="sub">
             1일차 · {dayMeta.date} · {dayMeta.minutes}분
           </p>
         )}
-        <ul>
+        <ul className="dayone">
           {dayItems.map((it, i) => (
             <li key={i}>
-              {it.title} — {it.pageRange ? `${it.pageRange} · ` : ''}
-              {it.status}
+              <span>{it.title}</span>
+              <span className="meta">
+                {it.pageRange ? `${it.pageRange} · ` : ''}
+                {it.status}
+              </span>
             </li>
           ))}
         </ul>
-        <button type="button" onClick={loadDayOne}>
-          다시 불러오기
-        </button>{' '}
-        <button type="button" onClick={handleStart} disabled={startBusy || !todayScope}>
-          {startBusy ? '문제 만드는 중…' : '퀴즈 시작'}
-        </button>
-        {error && <p role="alert">{error}</p>}
-      </section>
+        <div className="btn-row">
+          <button type="button" className="btn btn-ghost" onClick={loadDayOne}>
+            다시 불러오기
+          </button>
+          <button
+            type="button"
+            className="btn btn-gold"
+            onClick={handleStart}
+            disabled={startBusy || !todayScope}
+          >
+            {startBusy ? '문제 만드는 중…' : '퀴즈 시작'}
+          </button>
+        </div>
+        {error && <p className="msg-error">{error}</p>}
+      </div>
 
-      {quiz && (
-        <section>
-          <h2>문제</h2>
-          {quiz.questions.map((q) => (
-            <QuestionCard
-              key={q.questionNo}
-              question={q}
-              total={quiz.questions.length}
-              result={results[q.questionNo] ?? null}
-              onSubmit={handleSubmit}
-            />
-          ))}
-        </section>
-      )}
+      {quiz &&
+        quiz.questions.map((q) => (
+          <QuestionCard
+            key={q.questionNo}
+            question={q}
+            total={quiz.questions.length}
+            result={results[q.questionNo] ?? null}
+            onSubmit={handleSubmit}
+          />
+        ))}
 
       {summary && (
-        <section>
-          <h2>결과</h2>
-          <p>
-            <strong>
-              {summary.correctCount} / {summary.totalQuestionCount}
-            </strong>{' '}
-            · {summary.answeredCount}문제 제출 · {summary.correctCount}문제 정답
-          </p>
-        </section>
+        <div className="quiz-score">
+          <div className="n">
+            {summary.correctCount} / {summary.totalQuestionCount}
+          </div>
+          <div className="l">
+            {summary.answeredCount}문제 제출 · {summary.correctCount}문제 정답
+          </div>
+        </div>
       )}
     </main>
   );
@@ -197,14 +204,17 @@ function QuestionCard({ question, total, result, onSubmit }: QuestionCardProps) 
   const answered = result != null;
 
   return (
-    <article>
-      <p>
-        [{applied ? '응용' : '기본'}] {question.questionNo} / {total}
-      </p>
-      <p>
-        <strong>{question.questionText}</strong>
-      </p>
-      <ul>
+    <div className="card">
+      <div>
+        <span className={`q-badge ${applied ? 'applied' : 'basic'}`}>
+          {applied ? '응용' : '기본'}
+        </span>
+        <span className="q-no">
+          {question.questionNo} / {total}
+        </span>
+      </div>
+      <p className="q-text">{question.questionText}</p>
+      <ul className="q-choices">
         {choices.map((c, i) => {
           const no = i + 1;
           const mark = answered
@@ -224,7 +234,7 @@ function QuestionCard({ question, total, result, onSubmit }: QuestionCardProps) 
                   checked={selected === no}
                   disabled={answered}
                   onChange={() => setSelected(no)}
-                />{' '}
+                />
                 {no}. {c}
                 {mark}
               </label>
@@ -235,6 +245,7 @@ function QuestionCard({ question, total, result, onSubmit }: QuestionCardProps) 
       {!answered && (
         <button
           type="button"
+          className="btn btn-primary"
           onClick={() => selected != null && onSubmit(question, selected)}
           disabled={selected == null}
         >
@@ -242,11 +253,14 @@ function QuestionCard({ question, total, result, onSubmit }: QuestionCardProps) 
         </button>
       )}
       {answered && (
-        <p>
-          {result.correct ? '⭕ 정답이에요!' : `❌ 오답이에요. 정답은 ${result.answerNo}번입니다.`}{' '}
+        <p className={`q-result ${result.correct ? 'ok' : 'no'}`}>
+          <strong>
+            {result.correct ? '⭕ 정답이에요!' : `❌ 오답이에요. 정답은 ${result.answerNo}번입니다.`}
+          </strong>
+          <br />
           {result.explanation}
         </p>
       )}
-    </article>
+    </div>
   );
 }

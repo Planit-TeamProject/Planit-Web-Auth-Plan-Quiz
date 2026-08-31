@@ -11,8 +11,6 @@ import { missingFirebaseConfigKeys } from '../firebase';
 //  - 사용자가 직접 체크 + 로그인 성공 → 이메일을 localStorage 에 저장.
 //  - 그 뒤 로그아웃하고 다시 로그인 화면에 오면: 이메일칸 자동 채움 + 체크박스 켜진 상태.
 //  - 체크 해제하고 로그인하면 저장값 삭제.
-//
-// 로그인 성공 후 이동할 메인 화면은 팀원 웹이 담당하므로, 여기서는 성공 메시지만 표시한다.
 
 interface LoginRouteState {
   notice?: string;
@@ -39,8 +37,6 @@ function saveRememberedEmail(email: string | null) {
 
 export default function LoginPage() {
   const routeState = (useLocation().state as LoginRouteState | null) ?? {};
-
-  // 저장된 이메일이 있을 때만 채운다. 회원가입 직후라도 미리 채우지 않는다.
   const rememberedEmail = loadRememberedEmail();
 
   const [email, setEmail] = useState(rememberedEmail ?? '');
@@ -54,7 +50,6 @@ export default function LoginPage() {
   const configMissing = missingFirebaseConfigKeys.length > 0;
   const busy = submitting || googleBusy;
 
-  // 구글 "리다이렉트" 로그인에서 되돌아온 경우 결과를 받는다.
   useEffect(() => {
     consumeRedirectResult()
       .then((user) => {
@@ -67,16 +62,13 @@ export default function LoginPage() {
     e.preventDefault();
     setError('');
     setWelcome('');
-
     if (!email.trim() || !password) {
       setError('이메일과 비밀번호를 입력해 주세요.');
       return;
     }
-
     setSubmitting(true);
     try {
       const user = await signIn({ email: email.trim(), password });
-      // 체크되어 있으면 이메일 저장, 아니면 기존 저장값 삭제.
       saveRememberedEmail(rememberId ? email.trim() : null);
       setWelcome(`로그인 성공! 환영합니다, ${user.name ?? user.email}님`);
     } catch (err) {
@@ -106,63 +98,74 @@ export default function LoginPage() {
       <h1>로그인</h1>
 
       {configMissing && (
-        <p role="alert">
-          Firebase 설정이 없습니다. <code>frontend/.env.local</code> 에 웹 앱 config 값을 채우고
-          dev 서버를 재시작하세요. (누락: {missingFirebaseConfigKeys.join(', ')})
+        <p className="msg-error">
+          Firebase 설정이 없습니다. <code>frontend/.env.local</code> 에 웹 앱 config 값을 채우고 dev
+          서버를 재시작하세요. (누락: {missingFirebaseConfigKeys.join(', ')})
         </p>
       )}
 
-      <form onSubmit={handleSubmit}>
-        {routeState.notice && <p role="status">{routeState.notice}</p>}
+      <div className="card">
+        <p className="sub">이어서 계획을 확인하려면 로그인하세요.</p>
 
-        <div>
-          <label htmlFor="login-email">이메일</label>
-          <input
-            id="login-email"
-            type="email"
-            autoComplete="email"
-            placeholder="you@example.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </div>
+        <form onSubmit={handleSubmit}>
+          {routeState.notice && <p className="msg-ok">{routeState.notice}</p>}
 
-        <div>
-          <label htmlFor="login-password">비밀번호</label>
-          <input
-            id="login-password"
-            type="password"
-            autoComplete="current-password"
-            placeholder="••••••••"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-        </div>
+          <div className="field">
+            <label htmlFor="login-email">이메일</label>
+            <input
+              id="login-email"
+              type="email"
+              autoComplete="email"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
 
-        <label>
-          <input
-            type="checkbox"
-            checked={rememberId}
-            onChange={(e) => setRememberId(e.target.checked)}
-          />{' '}
-          아이디 저장하기
-        </label>
+          <div className="field">
+            <label htmlFor="login-password">비밀번호</label>
+            <input
+              id="login-password"
+              type="password"
+              autoComplete="current-password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
 
-        {error && <p role="alert">{error}</p>}
-        {welcome && <p role="status">{welcome}</p>}
+          <label className="check">
+            <input
+              type="checkbox"
+              checked={rememberId}
+              onChange={(e) => setRememberId(e.target.checked)}
+            />
+            아이디 저장하기
+          </label>
 
-        <button type="submit" disabled={busy}>
-          {submitting ? '로그인 중…' : '로그인'}
+          {error && <p className="msg-error">{error}</p>}
+          {welcome && <p className="msg-ok">{welcome}</p>}
+
+          <button type="submit" className="btn btn-primary btn-block" disabled={busy}>
+            {submitting ? '로그인 중…' : '로그인'}
+          </button>
+        </form>
+
+        <div className="divider">또는</div>
+
+        <button
+          type="button"
+          className="btn btn-ghost btn-block"
+          onClick={handleGoogle}
+          disabled={busy}
+        >
+          {googleBusy ? '구글 로그인 중…' : '구글로 로그인하기'}
         </button>
-      </form>
 
-      <button type="button" onClick={handleGoogle} disabled={busy}>
-        {googleBusy ? '구글 로그인 중…' : '구글로 로그인하기'}
-      </button>
-
-      <p>
-        계정이 없으신가요? <Link to="/signup">회원가입</Link>
-      </p>
+        <p className="switch-line">
+          계정이 없으신가요? <Link to="/signup">회원가입</Link>
+        </p>
+      </div>
     </main>
   );
 }
