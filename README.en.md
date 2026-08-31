@@ -56,6 +56,7 @@ src/main/resources/
   static/login.html   Login / sign-up (Firebase Auth compat CDN)
   static/quiz.html    Quiz bot (no Firebase SDK; calls /api/* only)
   static/app.css      Shared styles (mockup palette)
+  static/i18n.js      한국어 / 日本語 / English switch (language buttons in the nav)
   static/study_plan.json   Sample data for the quiz's "today's plan" (read by the server)
   static/index.html   Old 7-screen mockup — reference only (doesn't work)
 ```

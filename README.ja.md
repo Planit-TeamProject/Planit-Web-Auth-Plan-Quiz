@@ -56,6 +56,7 @@ src/main/resources/
   static/login.html   ログイン/新規登録（Firebase Auth compat CDN）
   static/quiz.html    クイズボット（Firebase SDK 未使用、/api/* のみ呼ぶ）
   static/app.css      共通スタイル（モックアップのパレット）
+  static/i18n.js      한국어 / 日本語 / English 切り替え（nav の言語ボタン）
   static/study_plan.json   クイズの「今日の予定」用サンプルデータ（サーバーが読む）
   static/index.html   旧・7画面モックアップ — 参考用（動作しません）
 ```

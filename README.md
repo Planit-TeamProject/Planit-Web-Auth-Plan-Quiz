@@ -55,6 +55,7 @@ src/main/resources/
   static/login.html   로그인/회원가입 (Firebase Auth compat CDN)
   static/quiz.html    퀴즈봇 (Firebase SDK 안 씀, /api/* 만 호출)
   static/app.css      공용 스타일 (목업 팔레트)
+  static/i18n.js      한국어 / 日本語 / English 전환 (nav 의 언어 버튼)
   static/study_plan.json   퀴즈 "오늘의 일과" 예시 데이터 (서버가 읽음)
   static/index.html   옛날 7화면 목업 — 참고용 (동작 안 함)
 ```
