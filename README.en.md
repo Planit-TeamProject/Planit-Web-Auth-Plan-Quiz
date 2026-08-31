@@ -7,7 +7,9 @@ Study-plan input is someone else's area and isn't in this repo.
 
 - Team's final integrated schema: [`docs/schema.sql`](docs/schema.sql) (MySQL-based)
 - Requirement-ID ↔ code mapping + schema ↔ Approach B table: [`docs/requirements-mapping.md`](docs/requirements-mapping.md)
-- This repo implements Kim Dongho's part in Firestore instead of MySQL — **Approach B** (see the mapping table).
+- Kim Dongho's part is **settled on Firestore (Approach B)**. The `member`/`quiz*` MySQL
+  tables in the integrated schema are replaced by Firestore per the mapping table
+  (other owners' tables like `study_plan*` stay in MySQL as in the schema).
 
 ## How it fits together (Approach B)
 

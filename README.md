@@ -7,7 +7,8 @@
 
 - 팀 최종 통합 스키마: [`docs/schema.sql`](docs/schema.sql) (MySQL 기준)
 - 요구사항 ID ↔ 코드 매핑 + 스키마 ↔ 방식 B 대응표: [`docs/requirements-mapping.md`](docs/requirements-mapping.md)
-- 이 저장소는 김동호 파트를 MySQL 대신 Firestore 로 구현한 **방식 B** 입니다 (매핑표 참고).
+- 김동호 파트는 **Firestore(방식 B) 로 확정**. 통합 스키마의 `member`/`quiz*` MySQL 테이블은
+  매핑표대로 Firestore 로 대체합니다 (`study_plan*` 등 다른 담당분은 스키마대로 MySQL).
 
 ## 구조 (방식 B)
 

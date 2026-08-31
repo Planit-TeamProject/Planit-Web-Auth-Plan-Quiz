@@ -73,15 +73,14 @@ Firebase Admin SDK 로 Firestore 를 다룹니다. 브라우저는 Firestore 를
 | `quiz_answer` (`quiz_question_id`, `member_id`, `selected_choice`, `is_correct` …) | Firestore `quizzes/{quizId}/answers/{questionNo}` = `{ selectedChoice, correct, answeredAt }` |
 | `study_plan`, `study_plan_time_slot`, `study_plan_weekday_minutes`, `study_plan_excluded_date` | **미구현.** 학습계획입력 화면은 프론트에서 제거됨. 실제 담당·구조는 유시우·박지민과 협의 필요 (schema.sql 의 "TODO 논의필요" 참고) |
 
-> 팀이 "김동호 파트도 MySQL 로 통일" 로 결정하면, 이 브랜치는 두고 새 브랜치에서
-> `member`·`quiz*` 를 JPA + MySQL 로 재구현해야 합니다 (Firebase Auth 는 로그인만 유지).
+> **확정: 김동호 파트는 Firestore(방식 B) 로 간다.** 팀 통합 스키마의 `member`/`quiz*`
+> MySQL 테이블은 김동호 파트에 대해서는 위 매핑표대로 Firestore 로 대체한다.
+> (`study_plan*` 등 다른 담당 테이블은 스키마 그대로 MySQL.)
 
 ## 아직 팀 논의가 필요한 항목
 
-1. **아키텍처**: 팀 통합 스키마는 MySQL 기준, 이 저장소는 방식 B(Firestore). 김동호 퀴즈를
-   Firestore 로 둘지 MySQL 로 되돌릴지 팀 확정 필요.
-2. **퀴즈 문제 생성 방식**: 지금은 `MockQuizQuestionGenerator` 가 고정 예시 3문제 반환.
+1. **퀴즈 문제 생성 방식**: 지금은 `MockQuizQuestionGenerator` 가 고정 예시 3문제 반환.
    OpenAI 연동(박지민 담당)이 정해지면 새 `QuizQuestionGenerator` 구현체를 `@Primary` 로 등록.
-3. **퀴즈 결과 ↔ 체크리스트/계획 재조정 연동**: 유시우·김경태·박지민 담당 기능과 연결 필요. 미연결.
-4. **서비스 계정 키**: `src/main/resources/firebase-service-account.json` 이 있어야 서버가 Firestore 에
+2. **퀴즈 결과 ↔ 체크리스트/계획 재조정 연동**: 유시우·김경태·박지민 담당 기능과 연결 필요. 미연결.
+3. **서비스 계정 키**: `src/main/resources/firebase-service-account.json` 이 있어야 서버가 Firestore 에
    접근합니다. 리더가 콘솔에서 발급해 전달하고, 절대 커밋하지 않습니다.

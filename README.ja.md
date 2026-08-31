@@ -7,7 +7,9 @@
 
 - チームの最終統合スキーマ: [`docs/schema.sql`](docs/schema.sql)（MySQLベース）
 - 要件ID ↔ コード対応 + スキーマ ↔ 方式B 対応表: [`docs/requirements-mapping.md`](docs/requirements-mapping.md)
-- このリポジトリはキム・ドンホ担当分を MySQL ではなく Firestore で実装した **方式B** です（対応表参照）。
+- キム・ドンホ担当分は **Firestore（方式B）で確定**。統合スキーマの `member`/`quiz*` MySQL
+  テーブルは対応表のとおり Firestore に置き換えます（`study_plan*` など他担当のテーブルは
+  スキーマどおり MySQL）。
 
 ## 全体の流れ（方式B）
 
