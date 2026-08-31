@@ -4,7 +4,7 @@ import { authErrorMessage, consumeRedirectResult, signIn, signInWithGoogle } fro
 import { missingFirebaseConfigKeys } from '../firebase';
 
 // 화면 2. 로그인 (김동호 담당 - 회원가입/로그인). 인증은 Firebase Authentication 사용.
-// 이메일/비밀번호 로그인과 구글 로그인 둘 다 지원한다.
+// 이메일/비밀번호 로그인 + 구글 로그인 + "아이디 저장하기"(이메일을 localStorage 에 기억).
 // 로그인 성공 후 이동할 메인 화면은 팀원 웹이 담당하므로, 여기서는 성공 메시지만 표시한다.
 // 연결 지점: handleSubmit / handleGoogle / 리다이렉트 결과 처리 useEffect 의 성공 분기.
 
@@ -13,11 +13,33 @@ interface LoginRouteState {
   email?: string;
 }
 
+const REMEMBERED_EMAIL_KEY = 'planit.rememberedEmail';
+
+function loadRememberedEmail(): string | null {
+  try {
+    return localStorage.getItem(REMEMBERED_EMAIL_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function saveRememberedEmail(email: string | null) {
+  try {
+    if (email) localStorage.setItem(REMEMBERED_EMAIL_KEY, email);
+    else localStorage.removeItem(REMEMBERED_EMAIL_KEY);
+  } catch {
+    /* 저장이 막힌 환경(시크릿 모드 등)은 무시 */
+  }
+}
+
 export default function LoginPage() {
   const routeState = (useLocation().state as LoginRouteState | null) ?? {};
+  const rememberedEmail = loadRememberedEmail();
 
-  const [email, setEmail] = useState(routeState.email ?? '');
+  // 회원가입 직후 넘어온 이메일 > 저장된 이메일 > 빈 값
+  const [email, setEmail] = useState(routeState.email ?? rememberedEmail ?? '');
   const [password, setPassword] = useState('');
+  const [rememberId, setRememberId] = useState(rememberedEmail !== null);
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [googleBusy, setGoogleBusy] = useState(false);
@@ -48,6 +70,8 @@ export default function LoginPage() {
     setSubmitting(true);
     try {
       const user = await signIn({ email: email.trim(), password });
+      // REQ: "아이디 저장하기" 체크 시 다음 로그인부터 이메일이 자동으로 채워지도록 저장.
+      saveRememberedEmail(rememberId ? email.trim() : null);
       setWelcome(`로그인 성공! 환영합니다, ${user.name ?? user.email}님`);
     } catch (err) {
       setError(authErrorMessage(err));
@@ -106,6 +130,15 @@ export default function LoginPage() {
             onChange={(e) => setPassword(e.target.value)}
           />
         </div>
+
+        <label>
+          <input
+            type="checkbox"
+            checked={rememberId}
+            onChange={(e) => setRememberId(e.target.checked)}
+          />{' '}
+          아이디 저장하기
+        </label>
 
         {error && <p role="alert">{error}</p>}
         {welcome && <p role="status">{welcome}</p>}
