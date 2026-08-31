@@ -125,6 +125,8 @@
       $('withdraw-btn').disabled = true;
       try {
         await api('/api/auth/withdraw', { method: 'POST' });
+        // 탈퇴하면 계정이 사라지므로 "아이디 저장하기" 로 남겨둔 이메일도 지운다.
+        try { localStorage.removeItem('planit.rememberedEmail'); } catch (e) {}
         alert('탈퇴가 완료되었습니다.');
         location.href = '/login.html';
       } catch (e) {
