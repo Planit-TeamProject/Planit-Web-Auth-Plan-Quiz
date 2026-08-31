@@ -188,10 +188,9 @@
       try {
         var cred = await firebase.auth().createUserWithEmailAndPassword(email, pw);
         await cred.user.updateProfile({ displayName: name });
-        // 가입 후 로그아웃하고 로그인 화면으로 (React 버전과 동일한 흐름)
+        // 가입 후 로그아웃하고 로그인 화면으로. 이메일칸은 비워 둔다(직접 입력하게).
         await firebase.auth().signOut();
         showView('login');
-        $('login-email').value = email;
         showMsg($('login-ok'), t('signup.notice'));
       } catch (err) {
         var key = authErrorKey(err);
