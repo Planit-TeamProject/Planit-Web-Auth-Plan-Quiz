@@ -1,79 +1,49 @@
-# Planit - 김동호 담당 파트
+# Planit — 김동호 파트
 
-Planit(학습 계획 관리 서비스) 팀 프로젝트에서 **김동호가 담당한 기능**의 구현입니다.
+회원가입/로그인(구글 포함), 로그아웃, 퀴즈봇. 학습계획입력은 다른 사람 담당이라 여기 없다.
 
-- 회원가입 / 로그인 (구글 로그인 포함) / 로그아웃
-- 퀴즈봇
+원래 Spring + MySQL로 짜다가 Firebase로 옮겼다. 안드로이드 앱과 같은 Firebase 프로젝트
+(`planit-ccfff`)를 쓰기 때문에 앱에서 가입한 계정으로 웹에서도 그대로 로그인된다.
 
-> 학습계획입력(플랜 생성 마법사)은 다른 담당이라 이 저장소에 포함하지 않습니다.
+- 프론트: React + TypeScript (Vite)
+- 인증: Firebase Authentication (이메일/비번, 구글)
+- DB: Firestore (`users`, `quizzes`)
+- Spring은 남아 있지만 정적 파일 서빙만 한다. DB는 안 쓴다.
 
-담당 근거 문서 (팀 저장소 `노예/` 폴더):
-- `01_프로젝트_기획서.docx`
-- `02_요구사항정의서.xlsx` → REQ-A(인증), REQ-Q(퀴즈봇), REQ-NF-009~023
-- `planit화면흐름도_수정.pptx` (US-001/US-002/US-003, QZ-001)
+요구사항 ID와 코드 위치 매핑은 [`docs/requirements-mapping.md`](docs/requirements-mapping.md).
 
-**요구사항 ID ↔ 코드 위치는 [`docs/requirements-mapping.md`](docs/requirements-mapping.md) 참고.**
-
-## 아키텍처
-
-기존 **Spring Boot + MySQL** 백엔드를 **Firebase** 로 전환했습니다.
-안드로이드 앱과 같은 Firebase 프로젝트를 써서 앱/웹 사용자가 같은 Authentication·Firestore 를 공유합니다.
-
-| 구분 | 선택 |
-|---|---|
-| 프론트엔드 | React 18 + TypeScript, Vite |
-| 인증 | Firebase Authentication (이메일/비밀번호 + Google) |
-| 데이터 | Cloud Firestore (`users`, `quizzes`) |
-| 서버 | Spring Boot 3.3.x — 정적 리소스 서빙만 (DB 없음) |
-
-MySQL / JPA / Spring Security / Spring Data JPA 의존성은 모두 제거되었습니다.
-데이터·인증 연동 코드는 전부 `frontend/` 에 있습니다.
-
-## 폴더 구조
+## 폴더
 
 ```
-팀프로젝트/
-├── build.gradle                  # web + lombok 만 남음
-├── src/main/java/com/planit/
-│   └── PlanitApplication.java    # 정적 리소스 서빙 전용 (MySQL/JPA 제거됨)
-├── src/main/resources/static/    # 초기 화면 목업(index.html) — 참고용
-├── docs/requirements-mapping.md  # 요구사항 ID → 코드 위치
-└── frontend/                     # ★ 실제 기능 구현 (React + Firebase)
-    ├── src/firebase.ts           # Firebase 초기화 (auth / db)
-    ├── src/auth/useCurrentUser.ts
-    ├── src/api/
-    │   ├── auth.ts               # 회원가입/로그인/구글 로그인/로그아웃
-    │   ├── quiz.ts               # 퀴즈 생성·제출·요약 (Firestore)
-    │   └── quizQuestions.ts      # 문제 생성기 (고정 예시, OpenAI 연동 시 교체)
-    ├── src/pages/
-    │   ├── LoginPage.tsx  SignupPage.tsx   # 화면 2 / 3
-    │   └── QuizPage.tsx                    # 화면 6 (오늘의 퀴즈)
-    └── src/styles/app.css        # 목업에서 추린 디자인 토큰·버튼·카드 스타일
+frontend/                          ← 실제 코드
+  src/firebase.ts                  Firebase 초기화 (auth, db)
+  src/auth/useCurrentUser.ts       로그인 상태 훅
+  src/api/
+    auth.ts                        가입 / 로그인 / 구글 로그인 / 로그아웃
+    quiz.ts                        퀴즈 생성·채점·요약
+    quizQuestions.ts               문제 3개 (지금은 고정, 나중에 OpenAI로 교체)
+  src/pages/
+    LoginPage.tsx  SignupPage.tsx  QuizPage.tsx
+  src/styles/app.css               목업에서 가져온 색·폰트·버튼 스타일
+src/main/java/com/planit/PlanitApplication.java   정적 서빙만
+src/main/resources/static/index.html              옛날 목업 (참고용)
 ```
 
 ## 실행
 
-### 프론트엔드 (실제 기능)
-
 ```bash
 cd frontend
 npm install
-cp .env.example .env.local     # Firebase 웹 앱 config 값 채우기
-npm run dev                    # http://localhost:3000
+cp .env.example .env.local     # Firebase config 값 채우기
+npm run dev                    # localhost:3000
 ```
 
-`frontend/README.md` 에 Firebase 콘솔에서 해야 하는 설정(웹 앱 등록, 이메일/Google 공급업체
-사용 설정, Firestore 보안 규칙)이 정리되어 있습니다.
+Firebase 콘솔에서 해야 하는 것(웹 앱 등록, 로그인 방법 켜기, Firestore 규칙)은
+`frontend/README.md`에 적어뒀다.
 
-### Spring (정적 서빙만, 선택)
+Spring을 띄우려면 `./gradlew bootRun` (localhost:8080, 목업만 나온다). DB 설정은 필요 없다.
 
-```bash
-./gradlew bootRun              # http://localhost:8080  (목업 index.html)
-```
-
-DB 설정이 필요 없습니다.
-
-## Firestore 데이터 모델
+## Firestore 구조
 
 ```
 users/{uid}                            { name, email, createdAt }
@@ -82,8 +52,9 @@ quizzes/{quizId}                       { uid, subjectName, todayScope, quizDate,
 quizzes/{quizId}/answers/{questionNo}  { selectedChoice, correct, answeredAt }
 ```
 
-## 이번 버전에서 일부러 빼놓은 것 (팀 논의 필요)
+## 아직 안 한 것
 
-1. **퀴즈 문제 생성 방식**: 지금은 `frontend/src/api/quizQuestions.ts` 가 고정 예시 3문제를 반환.
-   OpenAI 연동(박지민 담당)이 정해지면 `generateQuestions` 만 교체하면 됩니다.
-2. **퀴즈 결과 ↔ 체크리스트/계획 재조정 연동**: 유시우·김경태·박지민 담당 기능과 연결 필요. 이번 버전 미연결.
+- 퀴즈 문제가 고정 3개다. OpenAI 붙이는 건 박지민 담당이고, 방식이 정해지면
+  `quizQuestions.ts`의 `generateQuestions`만 바꾸면 된다.
+- 퀴즈 결과를 체크리스트/계획 재조정과 연결하는 부분은 아직. 유시우·김경태·박지민 쪽
+  기능과 물려야 한다.
