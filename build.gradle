@@ -24,9 +24,11 @@ repositories {
 }
 
 dependencies {
-	// 웹 (정적 리소스 서빙). 데이터/인증은 Firebase 로 옮겨져 프론트엔드에서 직접 연동한다.
-	// (MySQL/JPA, Spring Security, Validation 의존성은 Firebase 전환으로 제거됨)
+	// 웹 + REST API
 	implementation 'org.springframework.boot:spring-boot-starter-web'
+
+	// Firebase Admin SDK — ID 토큰 검증 + Firestore 접근 (방식 B)
+	implementation 'com.google.firebase:firebase-admin:9.2.0'
 
 	// Lombok
 	compileOnly 'org.projectlombok:lombok'
@@ -40,7 +42,6 @@ dependencies {
 tasks.named('test') {
 	useJUnitPlatform()
 	// 참고: 경로에 한글이 섞여 있으면(예: 팀프로젝트/노예) Windows 기본 코드페이지에 따라
-	// 테스트 워커가 클래스를 못 찾는 경우가 있다 (JVM 의 sun.jnu.encoding 이 OS 로케일에 고정되는 문제).
-	// 이 리포지토리를 영문 경로에 클론해서 실행하면 발생하지 않는다.
+	// 테스트 워커가 클래스를 못 찾는 경우가 있다. 영문 경로에 클론해서 실행하면 발생하지 않는다.
 	jvmArgs '-Dfile.encoding=UTF-8', '-Dsun.jnu.encoding=UTF-8'
 }

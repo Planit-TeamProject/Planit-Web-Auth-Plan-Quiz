@@ -36,3 +36,11 @@ uploads/
 application-local.yml
 application-secret.yml
 .env
+
+### Firebase 서비스 계정 키 — 진짜 비밀키. 절대 커밋 금지, 노션/드라이브로만 전달 ###
+src/main/resources/firebase-service-account.json
+firebase-service-account.json
+*-firebase-adminsdk-*.json
+
+### React 실험 흔적 (방식 B 로 전환하며 제거) ###
+frontend/
