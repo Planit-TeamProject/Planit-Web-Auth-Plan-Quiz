@@ -3,8 +3,9 @@
 `02_요구사항정의서.xlsx` 의 요구사항 ID가 실제 코드 어디에 구현되어 있는지 정리한 표입니다.
 화면 ID는 `planit화면흐름도_수정.pptx` 기준입니다.
 
-> **아키텍처 변경**: 기존 Spring Boot + MySQL 백엔드를 Firebase(Authentication / Firestore / Storage)로
+> **아키텍처 변경**: 기존 Spring Boot + MySQL 백엔드를 Firebase(Authentication / Firestore)로
 > 전환했습니다. 구현 위치는 모두 `frontend/` (React) 안의 파일입니다.
+> 학습계획입력(REQ-B)은 다른 담당이라 이 저장소에 없습니다.
 
 ## 회원가입 / 로그인 (REQ-A-001 ~ REQ-A-015)
 
@@ -28,19 +29,7 @@
 
 ## 학습계획입력 (REQ-B-001 ~ REQ-B-011)
 
-| 요구사항 ID | 내용 | 화면 ID | 구현 위치 |
-|---|---|---|---|
-| REQ-B-001 | 과목/자격증명 입력 | PL-001 STEP1 | `pages/StudyPlanPage.tsx` |
-| REQ-B-002 | 목차 업로드 (PDF/JPG/PNG) | PL-001 STEP1 | `api/studyPlan.ts#uploadTocFile` (Firebase Storage) |
-| REQ-B-003 | STEP1 필수 입력 검증 | PL-001 STEP1 | `api/studyPlan.ts#createStudyPlan`, `pages/StudyPlanPage.tsx#goStep2` |
-| REQ-B-004 | 학습 기간 입력 | PL-001 STEP2 | `pages/StudyPlanPage.tsx` (startDate/endDate) |
-| REQ-B-005 | 학습 기간 유효성 검증 | PL-001 STEP2 | `api/studyPlan.ts#createStudyPlan`, `pages/StudyPlanPage.tsx#goStep3` |
-| REQ-B-006 | 선호 학습 시간대 선택(복수) | PL-001 STEP2 | `api/studyPlan.ts` (`TIME_SLOTS`), `pages/StudyPlanPage.tsx#toggleSlot` |
-| REQ-B-007 | 하루 가용 학습 시간 입력 | PL-001 STEP2 | `pages/StudyPlanPage.tsx` (dailyMinutes) |
-| REQ-B-008 | 과목/단원 우선순위 입력 | PL-001 | **미구현** — 팀 결정 후 추가 |
-| REQ-B-009 | 입력 데이터 저장 | PL-001 STEP1~2 | `api/studyPlan.ts#createStudyPlan` (Firestore `studyPlans`) |
-| REQ-B-010 | 마법사 단계 이동 | PL-001 | `pages/StudyPlanPage.tsx` (`step` 상태) |
-| REQ-B-011 | STEP3 진행/확인 화면 표시 | PL-001 STEP3 | `pages/StudyPlanPage.tsx` (step 3) |
+이 저장소에서는 다루지 않습니다 (다른 담당).
 
 ## 퀴즈봇 (REQ-Q-001 ~ REQ-Q-006)
 
@@ -65,19 +54,14 @@
 | REQ-NF-014 | 로그인/회원가입 2초 이내 응답 | 성능 목표 — 별도 코드 없음 |
 | REQ-NF-015 | 입력 오류 안내 위치 | `api/auth.ts#authErrorMessage` + 각 페이지 `<p role="alert">` |
 | REQ-NF-016 | 예외 로그 | 각 페이지 `catch` → 화면 표시 + `console` |
-| REQ-NF-017 | 업로드 파일 10MB 제한 | `api/studyPlan.ts#uploadTocFile` (`MAX_TOC_BYTES`) |
-| REQ-NF-018 | 업로드 응답 시간/진행률 | `pages/StudyPlanPage.tsx` (`uploading` 상태 표시) |
-| REQ-NF-019 | 본인 학습 계획만 접근 | `api/studyPlan.ts#getStudyPlan` (uid 확인) + Firestore 보안 규칙 |
-| REQ-NF-020 | 학습 계획 데이터 보존 | 삭제 API 없음 |
-| REQ-NF-021 | 마법사 화면 모바일 대응 | 프론트 (스타일은 팀원 웹 통합 시) |
+| REQ-NF-017~019 | 목차 업로드/학습계획 접근 제한 | 학습계획입력 담당(다른 담당) |
 | REQ-NF-022 | 브라우저 지원 | 프론트 |
 | REQ-NF-023 | 퀴즈 응시 기록 보존 | Firestore `quizzes/{id}/answers` (삭제 API 없음) |
 
 ## 아직 팀 논의가 필요한 항목
 
-1. **REQ-B-008 과목/단원 우선순위**: 한 학습계획에 과목 여러 개 등록 가능 여부부터 결정 필요. 미구현.
-2. **퀴즈 문제 생성 방식**: 지금은 `api/quizQuestions.ts` 가 고정 예시 3문제 반환.
+1. **퀴즈 문제 생성 방식**: 지금은 `api/quizQuestions.ts` 가 고정 예시 3문제 반환.
    OpenAI 연동(박지민 담당)이 정해지면 `generateQuestions` 만 교체.
-3. **퀴즈 결과 ↔ 체크리스트/계획 재조정 연동**: 유시우·김경태·박지민 담당 기능과 연결 필요. 미연결.
-4. **Firestore / Storage 보안 규칙**: `users`·`studyPlans`·`quizzes` 는 본인(uid) 문서만 읽기/쓰기 가능하도록
+2. **퀴즈 결과 ↔ 체크리스트/계획 재조정 연동**: 유시우·김경태·박지민 담당 기능과 연결 필요. 미연결.
+3. **Firestore 보안 규칙**: `users`·`quizzes` 는 본인(uid) 문서만 읽기/쓰기 가능하도록
    규칙을 콘솔에 작성해야 함 (`frontend/README.md` 참고).

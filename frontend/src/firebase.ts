@@ -1,7 +1,7 @@
 // Firebase 초기화.
 // 안드로이드 앱이 쓰는 것과 "같은" Firebase 프로젝트에 웹 앱만 추가로 등록한 것이라,
 // 웹에서 가입한 유저와 앱에서 가입한 유저가 같은 Authentication / Firestore 를 공유한다.
-// (MySQL 대신 Firebase 로 전환 — member/quiz/studyplan 데이터 모두 Firestore 에 저장한다.)
+// (MySQL 대신 Firebase 로 전환 — member/quiz 데이터는 Firestore 에 저장한다.)
 //
 // 실제 config 값은 Firebase 콘솔 > 프로젝트 설정 > 내 앱 > 웹 앱 > "SDK 설정 및 구성"
 // 에서 복사해 frontend/.env.local 에 채운다 (.env.local 은 커밋 금지, .env.example 참고).
@@ -10,7 +10,6 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
-import { getStorage } from 'firebase/storage';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -41,4 +40,3 @@ const app = initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
 export const db = getFirestore(app);
-export const storage = getStorage(app);
