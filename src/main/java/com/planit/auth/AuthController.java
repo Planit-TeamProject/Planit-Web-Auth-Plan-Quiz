@@ -13,6 +13,7 @@ import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseToken;
+import com.google.firebase.auth.UserRecord;
 import com.planit.global.ApiException;
 
 import jakarta.servlet.http.HttpSession;
@@ -42,16 +43,16 @@ public class AuthController {
 		}
 
 		FirebaseToken decoded = FirebaseAuth.getInstance().verifyIdToken(idToken);
-		session.setAttribute(SessionUser.UID, decoded.getUid());
-		session.setAttribute(SessionUser.EMAIL, decoded.getEmail());
-		session.setAttribute(SessionUser.NAME, decoded.getName());
+		String uid = decoded.getUid();
+		String email = decoded.getEmail();
+		String name = resolveDisplayName(decoded);
 
-		log.info("[login] uid={} email={} name={}", decoded.getUid(), decoded.getEmail(), decoded.getName());
-		return Map.of(
-			"uid", decoded.getUid(),
-			"email", nullSafe(decoded.getEmail()),
-			"name", nullSafe(decoded.getName())
-		);
+		session.setAttribute(SessionUser.UID, uid);
+		session.setAttribute(SessionUser.EMAIL, email);
+		session.setAttribute(SessionUser.NAME, name);
+
+		log.info("[login] uid={} email={} name={}", uid, email, name);
+		return Map.of("uid", uid, "email", nullSafe(email), "name", nullSafe(name));
 	}
 
 	/** REQ-A-012: 로그아웃. 세션 무효화. */
@@ -73,6 +74,23 @@ public class AuthController {
 			"email", nullSafe(SessionUser.email(session)),
 			"name", nullSafe(SessionUser.name(session))
 		);
+	}
+
+	/**
+	 * 표시 이름(회원가입 때 입력한 이름). ID 토큰의 name 클레임이 비어 있으면
+	 * (updateProfile 직후 토큰이 아직 갱신 안 된 경우 등) Firebase 사용자 레코드에서 직접 조회한다.
+	 */
+	private String resolveDisplayName(FirebaseToken decoded) {
+		if (decoded.getName() != null && !decoded.getName().isBlank()) {
+			return decoded.getName();
+		}
+		try {
+			UserRecord record = FirebaseAuth.getInstance().getUser(decoded.getUid());
+			return record.getDisplayName();
+		} catch (Exception e) {
+			log.warn("[login] displayName 조회 실패 uid={}: {}", decoded.getUid(), e.getMessage());
+			return null;
+		}
 	}
 
 	private void requireFirebaseInitialized() {
