@@ -2,8 +2,8 @@
 
 *[English](README.en.md) · [日本語](README.ja.md)*
 
-회원가입/로그인(구글 포함), 로그아웃, 퀴즈봇을 담당합니다. 학습계획입력은 다른 사람
-담당이라 여기 없습니다.
+회원가입/로그인(구글 포함), 로그아웃, 회원 탈퇴, 퀴즈봇을 담당합니다. 학습계획입력은
+다른 사람 담당이라 여기 없습니다.
 
 ## 구조 (방식 B)
 
@@ -100,8 +100,20 @@ quizzes/{quizId}/answers/{questionNo}  { selectedChoice, correct, answeredAt }
    막기 위해 규칙은 계속 켜 둡니다 (기본 잠금 상태 그대로 두면 됨).
 4. 서비스 계정 키 발급 (위 실행 1번)
 
+## 회원 탈퇴
+
+`quiz.html` 의 "회원 탈퇴" 버튼 → `POST /api/auth/withdraw` (로그인 세션 필요).
+서버가 Admin SDK 로 ① 그 사용자의 `quizzes` 데이터 삭제 ② Firebase Auth 계정 삭제
+③ 세션 무효화 를 처리합니다. 브라우저에서는 `localStorage` 의 저장된 이메일도 지웁니다.
+
+`users/{uid}` 문서와 다른 도메인(`study_plan_items` 등) 데이터는 **건드리지 않습니다** —
+방식 B 웹은 `users` 에 쓰지 않고, 그 컬렉션은 팀 공유이기 때문. "탈퇴 시 전체 데이터 정리"는
+팀 조율이 필요합니다 (아래 참고).
+
 ## 아직 안 한 것
 
 - 퀴즈 문제가 고정 3개입니다. OpenAI 연동은 박지민 담당이고, 정해지면
   `MockQuizQuestionGenerator` 대신 새 `QuizQuestionGenerator` 구현체를 `@Primary` 로 등록하면 됩니다.
 - 퀴즈 결과를 체크리스트/계획 재조정과 연결하는 부분은 아직입니다.
+- 탈퇴 시 `users/{uid}` 와 타 도메인 데이터까지 정리하는 방법(예: Auth `onDelete`
+  Cloud Function 하나로 전부 삭제)은 팀 논의가 필요합니다.

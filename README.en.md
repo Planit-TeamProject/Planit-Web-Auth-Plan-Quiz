@@ -2,8 +2,8 @@
 
 *[한국어](README.md) · [日本語](README.ja.md)*
 
-Covers sign-up / login (including Google), logout, and the quiz bot. Study-plan input is
-someone else's area and isn't in this repo.
+Covers sign-up / login (including Google), logout, account withdrawal, and the quiz bot.
+Study-plan input is someone else's area and isn't in this repo.
 
 ## How it fits together (Approach B)
 
@@ -37,7 +37,7 @@ src/main/java/com/planit/
     FirebaseConfig.java          Initializes the Admin SDK from the service-account key
     WebConfig.java               Login interceptor on /api/quizzes/**
   auth/
-    AuthController.java          POST /api/auth/firebase-login, /logout, GET /me
+    AuthController.java          POST /api/auth/firebase-login, /logout, /withdraw, GET /me
     AuthInterceptor.java         401 if there's no session
     SessionUser.java
   quiz/
@@ -101,9 +101,22 @@ quizzes/{quizId}/answers/{questionNo}  { selectedChoice, correct, answeredAt }
    (locked by default is fine) to block direct client access.
 4. Generate the service-account key (step 1 above)
 
+## Account withdrawal
+
+The "회원 탈퇴" button in `quiz.html` → `POST /api/auth/withdraw` (needs a login session).
+The server, via the Admin SDK: (1) deletes that user's `quizzes` data, (2) deletes the
+Firebase Auth account, (3) invalidates the session. The browser also clears the saved
+email from `localStorage`.
+
+It does **not** touch the `users/{uid}` document or other domains' data
+(`study_plan_items`, etc.) — Approach B's web never writes to `users`, and that collection
+is shared across the team. Full account-data cleanup needs a team decision (see below).
+
 ## Not done yet
 
 - The quiz has a fixed set of 3 questions. OpenAI integration is Park Jimin's area; once
   it's decided, register a new `QuizQuestionGenerator` implementation as `@Primary` in place
   of `MockQuizQuestionGenerator`.
 - Wiring quiz results into the checklist / re-planning features isn't done yet.
+- Cleaning up `users/{uid}` and other-domain data on withdrawal (e.g. one Auth `onDelete`
+  Cloud Function that wipes everything) needs a team decision.

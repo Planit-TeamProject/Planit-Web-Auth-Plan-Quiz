@@ -2,7 +2,7 @@
 
 *[한국어](README.md) · [English](README.en.md)*
 
-新規登録／ログイン（Google含む）、ログアウト、クイズボットを担当します。学習計画入力は
+新規登録／ログイン（Google含む）、ログアウト、退会、クイズボットを担当します。学習計画入力は
 別の担当なので、このリポジトリにはありません。
 
 ## 全体の流れ（方式B）
@@ -37,7 +37,7 @@ src/main/java/com/planit/
     FirebaseConfig.java          サービスアカウントキーで Admin SDK を初期化
     WebConfig.java               /api/quizzes/** にログインインターセプター
   auth/
-    AuthController.java          POST /api/auth/firebase-login, /logout, GET /me
+    AuthController.java          POST /api/auth/firebase-login, /logout, /withdraw, GET /me
     AuthInterceptor.java         セッションが無ければ 401
     SessionUser.java
   quiz/
@@ -101,8 +101,21 @@ quizzes/{quizId}/answers/{questionNo}  { selectedChoice, correct, answeredAt }
    直接アクセスを防ぐためルールは有効のまま（デフォルトのロック状態でOK）にしておきます。
 4. サービスアカウントキーを発行（上記「実行方法」1）
 
+## 退会
+
+`quiz.html` の「회원 탈퇴」ボタン → `POST /api/auth/withdraw`（ログインセッションが必要）。
+サーバーが Admin SDK で、(1) そのユーザーの `quizzes` データを削除、(2) Firebase Auth の
+アカウントを削除、(3) セッションを無効化します。ブラウザ側では `localStorage` に保存した
+メールアドレスも消します。
+
+`users/{uid}` ドキュメントや他ドメインのデータ（`study_plan_items` など）には**触れません** —
+方式B のウェブは `users` に書き込まず、このコレクションはチーム共有だからです。
+アカウントデータの完全な後片付けはチームでの調整が必要です（下記参照）。
+
 ## まだやっていないこと
 
 - クイズの問題は固定の3問です。OpenAI 連携はパク・ジミン担当で、方式が決まったら
   `MockQuizQuestionGenerator` の代わりに新しい `QuizQuestionGenerator` 実装を `@Primary` で登録します。
 - クイズ結果をチェックリスト／再計画機能とつなぐ部分はまだです。
+- 退会時に `users/{uid}` や他ドメインのデータまで削除する方法（例：Auth の `onDelete`
+  Cloud Function ひとつで全部消す）はチームでの検討が必要です。

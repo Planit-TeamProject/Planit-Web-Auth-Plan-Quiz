@@ -23,6 +23,7 @@ Firebase Admin SDK 로 Firestore 를 다룹니다. 브라우저는 Firestore 를
 | REQ-A-010 | 로그인 성공 시 이동 | `static/login.html#exchangeTokenAndGo` (→ `/quiz.html`) |
 | REQ-A-011 | 세션 관리(로그인 상태 유지) | `AuthController` 가 세션에 uid/email 저장, `application.yml` session.timeout |
 | REQ-A-012 | 로그아웃 | `POST /api/auth/logout` → `AuthController#logout` (세션 무효화) |
+| (추가) | 회원 탈퇴 | `POST /api/auth/withdraw` → `AuthController#withdraw` (quizzes 삭제 + Firebase 계정 삭제 + 세션 무효화). `users/{uid}`·타 도메인 정리는 팀 논의 필요 |
 | REQ-A-013 | 로그인/회원가입 화면 전환 링크 | `static/login.html` (`to-signup` / `to-login`) |
 | REQ-A-014 | Google 소셜 로그인 | `static/login.html#google-btn` (`signInWithPopup`) → 같은 토큰 교환 흐름 |
 | REQ-A-015 | 미인증 계정 로그인 차단 | Firebase Auth (`auth/user-disabled`), Admin SDK `verifyIdToken` |
