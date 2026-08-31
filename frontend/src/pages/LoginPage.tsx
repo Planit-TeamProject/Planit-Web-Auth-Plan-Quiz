@@ -4,13 +4,18 @@ import { authErrorMessage, consumeRedirectResult, signIn, signInWithGoogle } fro
 import { missingFirebaseConfigKeys } from '../firebase';
 
 // 화면 2. 로그인 (김동호 담당 - 회원가입/로그인). 인증은 Firebase Authentication 사용.
-// 이메일/비밀번호 로그인 + 구글 로그인 + "아이디 저장하기"(이메일을 localStorage 에 기억).
+// 이메일/비밀번호 로그인 + 구글 로그인 + "아이디 저장하기".
+//
+// "아이디 저장하기" 동작:
+//  - 처음(저장된 값 없음): 이메일칸 빈칸(placeholder만), 체크박스 꺼짐.
+//  - 사용자가 직접 체크 + 로그인 성공 → 이메일을 localStorage 에 저장.
+//  - 그 뒤 로그아웃하고 다시 로그인 화면에 오면: 이메일칸 자동 채움 + 체크박스 켜진 상태.
+//  - 체크 해제하고 로그인하면 저장값 삭제.
+//
 // 로그인 성공 후 이동할 메인 화면은 팀원 웹이 담당하므로, 여기서는 성공 메시지만 표시한다.
-// 연결 지점: handleSubmit / handleGoogle / 리다이렉트 결과 처리 useEffect 의 성공 분기.
 
 interface LoginRouteState {
   notice?: string;
-  email?: string;
 }
 
 const REMEMBERED_EMAIL_KEY = 'planit.rememberedEmail';
@@ -34,10 +39,11 @@ function saveRememberedEmail(email: string | null) {
 
 export default function LoginPage() {
   const routeState = (useLocation().state as LoginRouteState | null) ?? {};
+
+  // 저장된 이메일이 있을 때만 채운다. 회원가입 직후라도 미리 채우지 않는다.
   const rememberedEmail = loadRememberedEmail();
 
-  // 회원가입 직후 넘어온 이메일 > 저장된 이메일 > 빈 값
-  const [email, setEmail] = useState(routeState.email ?? rememberedEmail ?? '');
+  const [email, setEmail] = useState(rememberedEmail ?? '');
   const [password, setPassword] = useState('');
   const [rememberId, setRememberId] = useState(rememberedEmail !== null);
   const [error, setError] = useState('');
@@ -70,7 +76,7 @@ export default function LoginPage() {
     setSubmitting(true);
     try {
       const user = await signIn({ email: email.trim(), password });
-      // REQ: "아이디 저장하기" 체크 시 다음 로그인부터 이메일이 자동으로 채워지도록 저장.
+      // 체크되어 있으면 이메일 저장, 아니면 기존 저장값 삭제.
       saveRememberedEmail(rememberId ? email.trim() : null);
       setWelcome(`로그인 성공! 환영합니다, ${user.name ?? user.email}님`);
     } catch (err) {
@@ -115,6 +121,7 @@ export default function LoginPage() {
             id="login-email"
             type="email"
             autoComplete="email"
+            placeholder="you@example.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
@@ -126,6 +133,7 @@ export default function LoginPage() {
             id="login-password"
             type="password"
             autoComplete="current-password"
+            placeholder="••••••••"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />

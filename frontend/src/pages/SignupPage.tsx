@@ -58,9 +58,8 @@ export default function SignupPage() {
     setSubmitting(true);
     try {
       await signUp({ name: name.trim(), email: email.trim(), password });
-      navigate('/login', {
-        state: { notice: '가입 완료! 로그인해 주세요.', email: email.trim() },
-      });
+      // 로그인 화면에 이메일을 미리 채우지 않는다. 안내 문구만 전달.
+      navigate('/login', { state: { notice: '가입 완료! 로그인해 주세요.' } });
     } catch (err) {
       setError(authErrorMessage(err));
     } finally {
