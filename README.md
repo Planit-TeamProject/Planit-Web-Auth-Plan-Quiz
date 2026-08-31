@@ -45,9 +45,10 @@ MySQL / JPA / Spring Security / Spring Data JPA 의존성은 모두 제거되었
     │   ├── auth.ts               # 회원가입/로그인/구글 로그인/로그아웃
     │   ├── quiz.ts               # 퀴즈 생성·제출·요약 (Firestore)
     │   └── quizQuestions.ts      # 문제 생성기 (고정 예시, OpenAI 연동 시 교체)
-    └── src/pages/
-        ├── LoginPage.tsx  SignupPage.tsx   # 화면 2 / 3
-        └── QuizPage.tsx                    # 화면 6 (오늘의 퀴즈)
+    ├── src/pages/
+    │   ├── LoginPage.tsx  SignupPage.tsx   # 화면 2 / 3
+    │   └── QuizPage.tsx                    # 화면 6 (오늘의 퀴즈)
+    └── src/styles/app.css        # 목업에서 추린 디자인 토큰·버튼·카드 스타일
 ```
 
 ## 실행

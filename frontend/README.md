@@ -2,7 +2,8 @@
 
 김동호 담당 기능을 React + TypeScript(Vite)로 구현한 것. 백엔드(Spring + MySQL) 없이
 **Firebase** 로 동작한다 — 안드로이드 앱과 같은 Firebase 프로젝트라 앱/웹 유저가 같은
-Authentication·Firestore 를 공유한다. 스타일은 팀원 웹과 합칠 때 붙일 예정이라 지금은 없다.
+Authentication·Firestore 를 공유한다. 스타일은 목업(`src/main/resources/static/index.html`)의
+디자인 토큰·버튼·카드 규칙만 추려 `src/styles/app.css` 로 적용했다(팀원 웹과 합칠 때 교체 가능).
 
 - 회원가입 / 로그인 (이메일·비밀번호 + Google) / 로그아웃
 - 퀴즈봇
@@ -38,9 +39,9 @@ npm run preview
 | `src/pages/LoginPage.tsx` / `SignupPage.tsx` | 화면 2 / 3. 로그인은 "아이디 저장하기" 지원 |
 | `src/pages/QuizPage.tsx` | 화면 6. 오늘의 퀴즈 → `/quiz` |
 | `src/App.tsx` | 라우팅 + 상단 nav(로그아웃 버튼 포함) |
+| `src/styles/app.css` | 목업에서 추린 디자인 토큰·버튼·입력·카드 스타일 |
+| `index.html` | Google Fonts(Space Grotesk / Inter / JetBrains Mono) 링크 |
 | `public/study_plan.json` | 퀴즈 "오늘의 일과" 예시 데이터 |
-
-목업의 `className`/`id`·장식 마크업은 모두 제거했고, 스타일 없는 시맨틱 HTML 만 남겼다.
 
 ## Firestore 데이터 모델
 
