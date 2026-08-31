@@ -44,9 +44,14 @@ public class AuthController {
 		FirebaseToken decoded = FirebaseAuth.getInstance().verifyIdToken(idToken);
 		session.setAttribute(SessionUser.UID, decoded.getUid());
 		session.setAttribute(SessionUser.EMAIL, decoded.getEmail());
+		session.setAttribute(SessionUser.NAME, decoded.getName());
 
-		log.info("[login] uid={} email={}", decoded.getUid(), decoded.getEmail());
-		return Map.of("uid", decoded.getUid(), "email", nullSafe(decoded.getEmail()));
+		log.info("[login] uid={} email={} name={}", decoded.getUid(), decoded.getEmail(), decoded.getName());
+		return Map.of(
+			"uid", decoded.getUid(),
+			"email", nullSafe(decoded.getEmail()),
+			"name", nullSafe(decoded.getName())
+		);
 	}
 
 	/** REQ-A-012: 로그아웃. 세션 무효화. */
@@ -63,7 +68,11 @@ public class AuthController {
 		if (uid == null) {
 			throw new ApiException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다");
 		}
-		return Map.of("uid", uid, "email", nullSafe(SessionUser.email(session)));
+		return Map.of(
+			"uid", uid,
+			"email", nullSafe(SessionUser.email(session)),
+			"name", nullSafe(SessionUser.name(session))
+		);
 	}
 
 	private void requireFirebaseInitialized() {
