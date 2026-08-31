@@ -5,6 +5,10 @@
 회원가입/로그인(구글 포함), 로그아웃, 회원 탈퇴, 퀴즈봇을 담당합니다. 학습계획입력은
 다른 사람 담당이라 여기 없습니다.
 
+- 팀 최종 통합 스키마: [`docs/schema.sql`](docs/schema.sql) (MySQL 기준)
+- 요구사항 ID ↔ 코드 매핑 + 스키마 ↔ 방식 B 대응표: [`docs/requirements-mapping.md`](docs/requirements-mapping.md)
+- 이 저장소는 김동호 파트를 MySQL 대신 Firestore 로 구현한 **방식 B** 입니다 (매핑표 참고).
+
 ## 구조 (방식 B)
 
 ```

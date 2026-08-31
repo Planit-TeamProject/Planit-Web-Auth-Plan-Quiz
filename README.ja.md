@@ -5,6 +5,10 @@
 新規登録／ログイン（Google含む）、ログアウト、退会、クイズボットを担当します。学習計画入力は
 別の担当なので、このリポジトリにはありません。
 
+- チームの最終統合スキーマ: [`docs/schema.sql`](docs/schema.sql)（MySQLベース）
+- 要件ID ↔ コード対応 + スキーマ ↔ 方式B 対応表: [`docs/requirements-mapping.md`](docs/requirements-mapping.md)
+- このリポジトリはキム・ドンホ担当分を MySQL ではなく Firestore で実装した **方式B** です（対応表参照）。
+
 ## 全体の流れ（方式B）
 
 ```

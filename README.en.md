@@ -5,6 +5,10 @@
 Covers sign-up / login (including Google), logout, account withdrawal, and the quiz bot.
 Study-plan input is someone else's area and isn't in this repo.
 
+- Team's final integrated schema: [`docs/schema.sql`](docs/schema.sql) (MySQL-based)
+- Requirement-ID ↔ code mapping + schema ↔ Approach B table: [`docs/requirements-mapping.md`](docs/requirements-mapping.md)
+- This repo implements Kim Dongho's part in Firestore instead of MySQL — **Approach B** (see the mapping table).
+
 ## How it fits together (Approach B)
 
 ```
