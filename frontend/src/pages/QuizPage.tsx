@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useCurrentUser } from '../auth/useCurrentUser';
+import { useLang } from '../i18n/lang';
 import {
   getQuizSummary,
   startQuiz,
@@ -21,13 +22,16 @@ interface DayItem {
   status: string;
 }
 
+type LoadError = { key: string; params?: Record<string, string | number> } | null;
+
 export default function QuizPage() {
+  const { t } = useLang();
   const { user, loading } = useCurrentUser();
 
   const [dayMeta, setDayMeta] = useState<{ date: string; minutes: number } | null>(null);
   const [dayItems, setDayItems] = useState<DayItem[]>([]);
   const [todayScope, setTodayScope] = useState('');
-  const [loadError, setLoadError] = useState('');
+  const [loadError, setLoadError] = useState<LoadError>(null);
 
   const [startBusy, setStartBusy] = useState(false);
   const [quiz, setQuiz] = useState<Quiz | null>(null);
@@ -39,7 +43,6 @@ export default function QuizPage() {
     loadDayOne();
   }, []);
 
-  // 모든 문제를 제출하면 요약을 불러온다 (REQ-Q-006).
   useEffect(() => {
     if (quiz && Object.keys(results).length === quiz.questions.length) {
       getQuizSummary(quiz.id)
@@ -49,16 +52,20 @@ export default function QuizPage() {
   }, [quiz, results]);
 
   async function loadDayOne() {
-    setLoadError('');
+    setLoadError(null);
     try {
       const res = await fetch('/study_plan.json');
-      if (!res.ok) throw new Error(`study_plan.json 을 불러오지 못했습니다 (${res.status})`);
+      if (!res.ok) {
+        setLoadError({ key: 'quiz.err.loadFail', params: { status: res.status } });
+        setTodayScope('');
+        return;
+      }
       const plan = await res.json();
       const day1 = plan.days?.[0];
       if (!day1 || !Array.isArray(day1.items) || day1.items.length === 0) {
         setTodayScope('');
         setDayItems([]);
-        setLoadError('1일차 학습 항목이 없습니다.');
+        setLoadError({ key: 'quiz.err.noItems' });
         return;
       }
       setDayMeta({ date: day1.date, minutes: day1.minutes });
@@ -70,13 +77,13 @@ export default function QuizPage() {
       );
     } catch (e) {
       setTodayScope('');
-      setLoadError(e instanceof Error ? e.message : String(e));
+      setLoadError({ key: 'quiz.err.loadFail', params: { status: e instanceof Error ? e.message : String(e) } });
     }
   }
 
   async function handleStart() {
     if (!user || !todayScope) {
-      if (!todayScope) setError('오늘의 일과를 먼저 불러와 주세요.');
+      if (!todayScope) setError(t('quiz.err.noScope'));
       return;
     }
     setError('');
@@ -84,7 +91,7 @@ export default function QuizPage() {
     setResults({});
     setStartBusy(true);
     try {
-      setQuiz(await startQuiz({ uid: user.uid, subjectName: '테스트', todayScope }));
+      setQuiz(await startQuiz({ uid: user.uid, subjectName: 'quiz', todayScope }));
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -105,17 +112,17 @@ export default function QuizPage() {
   if (loading)
     return (
       <main>
-        <p>불러오는 중…</p>
+        <p>{t('common.loading')}</p>
       </main>
     );
 
   if (!user) {
     return (
       <main>
-        <h1>오늘의 퀴즈</h1>
+        <h1>{t('quiz.title')}</h1>
         <div className="card">
           <p className="msg-error">
-            로그인이 필요합니다. <Link to="/login">로그인하러 가기</Link>
+            {t('quiz.needLogin')} <Link to="/login">{t('quiz.toLogin')}</Link>
           </p>
         </div>
       </main>
@@ -124,18 +131,15 @@ export default function QuizPage() {
 
   return (
     <main className="wide">
-      <h1>오늘의 퀴즈</h1>
-      <p className="quiz-lead">
-        study_plan.json 의 <strong>1일차</strong> 학습 범위로 4지선다 3문제(쉬운 문제 2 + 응용 1)를
-        만듭니다. 아래 오늘의 일과를 확인하고 &lsquo;퀴즈 시작&rsquo;을 누르세요.
-      </p>
+      <h1>{t('quiz.title')}</h1>
+      <p className="quiz-lead">{t('quiz.lead')}</p>
 
       <div className="card">
-        <h2>오늘의 일과 (study_plan.json 1일차)</h2>
-        {loadError && <p className="msg-error">{loadError}</p>}
+        <h2>{t('quiz.todayHeading')}</h2>
+        {loadError && <p className="msg-error">{t(loadError.key, loadError.params)}</p>}
         {dayMeta && (
           <p className="sub">
-            1일차 · {dayMeta.date} · {dayMeta.minutes}분
+            {t('quiz.dayMeta', { date: dayMeta.date, minutes: dayMeta.minutes })}
           </p>
         )}
         <ul className="dayone">
@@ -151,7 +155,7 @@ export default function QuizPage() {
         </ul>
         <div className="btn-row">
           <button type="button" className="btn btn-ghost" onClick={loadDayOne}>
-            다시 불러오기
+            {t('quiz.reload')}
           </button>
           <button
             type="button"
@@ -159,7 +163,7 @@ export default function QuizPage() {
             onClick={handleStart}
             disabled={startBusy || !todayScope}
           >
-            {startBusy ? '문제 만드는 중…' : '퀴즈 시작'}
+            {startBusy ? t('quiz.starting') : t('quiz.start')}
           </button>
         </div>
         {error && <p className="msg-error">{error}</p>}
@@ -182,7 +186,10 @@ export default function QuizPage() {
             {summary.correctCount} / {summary.totalQuestionCount}
           </div>
           <div className="l">
-            {summary.answeredCount}문제 제출 · {summary.correctCount}문제 정답
+            {t('quiz.summary', {
+              answered: summary.answeredCount,
+              correct: summary.correctCount,
+            })}
           </div>
         </div>
       )}
@@ -198,6 +205,7 @@ interface QuestionCardProps {
 }
 
 function QuestionCard({ question, total, result, onSubmit }: QuestionCardProps) {
+  const { t } = useLang();
   const [selected, setSelected] = useState<number | null>(null);
   const choices = [question.choice1, question.choice2, question.choice3, question.choice4];
   const applied = question.questionType === 'APPLIED';
@@ -207,10 +215,10 @@ function QuestionCard({ question, total, result, onSubmit }: QuestionCardProps) 
     <div className="card">
       <div>
         <span className={`q-badge ${applied ? 'applied' : 'basic'}`}>
-          {applied ? '응용' : '기본'}
+          {applied ? t('quiz.badge.applied') : t('quiz.badge.basic')}
         </span>
         <span className="q-no">
-          {question.questionNo} / {total}
+          {t('quiz.qNo', { no: question.questionNo, total })}
         </span>
       </div>
       <p className="q-text">{question.questionText}</p>
@@ -219,9 +227,9 @@ function QuestionCard({ question, total, result, onSubmit }: QuestionCardProps) 
           const no = i + 1;
           const mark = answered
             ? no === result.answerNo
-              ? ' ✅ (정답)'
+              ? ' ✅'
               : no === selected
-                ? ' ❌ (내 선택)'
+                ? ' ❌'
                 : ''
             : '';
           return (
@@ -249,13 +257,13 @@ function QuestionCard({ question, total, result, onSubmit }: QuestionCardProps) 
           onClick={() => selected != null && onSubmit(question, selected)}
           disabled={selected == null}
         >
-          제출
+          {t('quiz.submit')}
         </button>
       )}
       {answered && (
         <p className={`q-result ${result.correct ? 'ok' : 'no'}`}>
           <strong>
-            {result.correct ? '⭕ 정답이에요!' : `❌ 오답이에요. 정답은 ${result.answerNo}번입니다.`}
+            {result.correct ? t('quiz.correct') : t('quiz.wrong', { no: result.answerNo })}
           </strong>
           <br />
           {result.explanation}

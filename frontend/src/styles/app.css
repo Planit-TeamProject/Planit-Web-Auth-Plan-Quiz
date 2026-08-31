@@ -77,6 +77,19 @@ code {
 .topnav .who {
   color: var(--gold);
 }
+.langswitch {
+  display: inline-flex;
+  gap: 4px;
+}
+.langswitch button {
+  padding: 4px 9px;
+  font-size: 11px;
+}
+.langswitch button.active {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: var(--ink);
+}
 .topnav button {
   font-family: var(--body);
   font-size: 12px;

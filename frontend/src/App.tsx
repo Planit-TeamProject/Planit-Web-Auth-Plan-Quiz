@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, Navigate, Route, Routes, useNavigate } from 'react-router-dom';
 import { signOutUser } from './api/auth';
 import { useCurrentUser } from './auth/useCurrentUser';
+import { LangSwitcher, useLang } from './i18n/lang';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import QuizPage from './pages/QuizPage';
@@ -10,6 +11,7 @@ import QuizPage from './pages/QuizPage';
 // 상단 nav 는 개발 중 화면을 오가기 위한 임시 바이며, 팀원 웹과 합칠 때 제거하면 된다.
 
 function TopNav() {
+  const { t } = useLang();
   const { user } = useCurrentUser();
   const navigate = useNavigate();
   const [loggingOut, setLoggingOut] = useState(false);
@@ -27,15 +29,16 @@ function TopNav() {
 
   return (
     <nav className="topnav">
-      <Link to="/login">로그인</Link>
-      <Link to="/signup">회원가입</Link>
-      <Link to="/quiz">퀴즈봇</Link>
+      <Link to="/login">{t('nav.login')}</Link>
+      <Link to="/signup">{t('nav.signup')}</Link>
+      <Link to="/quiz">{t('nav.quiz')}</Link>
       <span className="spacer" />
+      <LangSwitcher />
       {user && (
         <>
           <span className="who">{user.displayName ?? user.email}</span>
           <button type="button" onClick={handleLogout} disabled={loggingOut}>
-            {loggingOut ? '로그아웃 중…' : '로그아웃'}
+            {loggingOut ? t('nav.loggingOut') : t('nav.logout')}
           </button>
         </>
       )}

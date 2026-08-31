@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { authErrorMessage, consumeRedirectResult, signIn, signInWithGoogle } from '../api/auth';
 import { missingFirebaseConfigKeys } from '../firebase';
+import { useLang } from '../i18n/lang';
 
 // 화면 2. 로그인 (김동호 담당 - 회원가입/로그인). 인증은 Firebase Authentication 사용.
 // 이메일/비밀번호 로그인 + 구글 로그인 + "아이디 저장하기".
@@ -36,16 +37,17 @@ function saveRememberedEmail(email: string | null) {
 }
 
 export default function LoginPage() {
+  const { t } = useLang();
   const routeState = (useLocation().state as LoginRouteState | null) ?? {};
   const rememberedEmail = loadRememberedEmail();
 
   const [email, setEmail] = useState(rememberedEmail ?? '');
   const [password, setPassword] = useState('');
   const [rememberId, setRememberId] = useState(rememberedEmail !== null);
-  const [error, setError] = useState('');
+  const [errorKey, setErrorKey] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [googleBusy, setGoogleBusy] = useState(false);
-  const [welcome, setWelcome] = useState('');
+  const [welcomeName, setWelcomeName] = useState('');
 
   const configMissing = missingFirebaseConfigKeys.length > 0;
   const busy = submitting || googleBusy;
@@ -53,41 +55,40 @@ export default function LoginPage() {
   useEffect(() => {
     consumeRedirectResult()
       .then((user) => {
-        if (user) setWelcome(`로그인 성공! 환영합니다, ${user.name ?? user.email}님`);
+        if (user) setWelcomeName(user.name ?? user.email ?? '');
       })
-      .catch((err) => setError(authErrorMessage(err)));
+      .catch((err) => setErrorKey(authErrorMessage(err)));
   }, []);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    setError('');
-    setWelcome('');
+    setErrorKey('');
+    setWelcomeName('');
     if (!email.trim() || !password) {
-      setError('이메일과 비밀번호를 입력해 주세요.');
+      setErrorKey('login.err.empty');
       return;
     }
     setSubmitting(true);
     try {
       const user = await signIn({ email: email.trim(), password });
       saveRememberedEmail(rememberId ? email.trim() : null);
-      setWelcome(`로그인 성공! 환영합니다, ${user.name ?? user.email}님`);
+      setWelcomeName(user.name ?? user.email ?? '');
     } catch (err) {
-      setError(authErrorMessage(err));
+      setErrorKey(authErrorMessage(err));
     } finally {
       setSubmitting(false);
     }
   }
 
   async function handleGoogle() {
-    setError('');
-    setWelcome('');
+    setErrorKey('');
+    setWelcomeName('');
     setGoogleBusy(true);
     try {
       const user = await signInWithGoogle();
-      setWelcome(`로그인 성공! 환영합니다, ${user.name ?? user.email}님`);
+      setWelcomeName(user.name ?? user.email ?? '');
     } catch (err) {
-      const message = authErrorMessage(err);
-      if (message) setError(message);
+      setErrorKey(authErrorMessage(err));
     } finally {
       setGoogleBusy(false);
     }
@@ -95,23 +96,22 @@ export default function LoginPage() {
 
   return (
     <main>
-      <h1>로그인</h1>
+      <h1>{t('login.title')}</h1>
 
       {configMissing && (
         <p className="msg-error">
-          Firebase 설정이 없습니다. <code>frontend/.env.local</code> 에 웹 앱 config 값을 채우고 dev
-          서버를 재시작하세요. (누락: {missingFirebaseConfigKeys.join(', ')})
+          {t('login.configMissing', { keys: missingFirebaseConfigKeys.join(', ') })}
         </p>
       )}
 
       <div className="card">
-        <p className="sub">이어서 계획을 확인하려면 로그인하세요.</p>
+        <p className="sub">{t('login.sub')}</p>
 
         <form onSubmit={handleSubmit}>
-          {routeState.notice && <p className="msg-ok">{routeState.notice}</p>}
+          {routeState.notice === 'signup' && <p className="msg-ok">{t('login.notice.signup')}</p>}
 
           <div className="field">
-            <label htmlFor="login-email">이메일</label>
+            <label htmlFor="login-email">{t('login.field.email')}</label>
             <input
               id="login-email"
               type="email"
@@ -123,7 +123,7 @@ export default function LoginPage() {
           </div>
 
           <div className="field">
-            <label htmlFor="login-password">비밀번호</label>
+            <label htmlFor="login-password">{t('login.field.password')}</label>
             <input
               id="login-password"
               type="password"
@@ -140,18 +140,18 @@ export default function LoginPage() {
               checked={rememberId}
               onChange={(e) => setRememberId(e.target.checked)}
             />
-            아이디 저장하기
+            {t('login.remember')}
           </label>
 
-          {error && <p className="msg-error">{error}</p>}
-          {welcome && <p className="msg-ok">{welcome}</p>}
+          {errorKey && <p className="msg-error">{t(errorKey)}</p>}
+          {welcomeName && <p className="msg-ok">{t('login.welcome', { name: welcomeName })}</p>}
 
           <button type="submit" className="btn btn-primary btn-block" disabled={busy}>
-            {submitting ? '로그인 중…' : '로그인'}
+            {submitting ? t('login.submitting') : t('login.submit')}
           </button>
         </form>
 
-        <div className="divider">또는</div>
+        <div className="divider">{t('common.or')}</div>
 
         <button
           type="button"
@@ -159,11 +159,11 @@ export default function LoginPage() {
           onClick={handleGoogle}
           disabled={busy}
         >
-          {googleBusy ? '구글 로그인 중…' : '구글로 로그인하기'}
+          {googleBusy ? t('login.googleBusy') : t('login.google')}
         </button>
 
         <p className="switch-line">
-          계정이 없으신가요? <Link to="/signup">회원가입</Link>
+          {t('login.noAccount')} <Link to="/signup">{t('login.toSignup')}</Link>
         </p>
       </div>
     </main>
