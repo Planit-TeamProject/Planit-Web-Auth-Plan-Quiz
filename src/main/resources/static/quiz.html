@@ -20,6 +20,7 @@
     <span class="spacer"></span>
     <span id="who" class="who"></span>
     <button id="logout-btn" class="hidden">로그아웃</button>
+    <button id="withdraw-btn" class="hidden">회원 탈퇴</button>
   </nav>
 
   <main class="wide">
@@ -77,6 +78,7 @@
         var label = (me.name && me.name.trim()) ? me.name.trim() : (me.email || '');
         $('who').textContent = label ? label + '님' : '';
         show($('logout-btn'));
+        show($('withdraw-btn'));
         show($('content'));
         loadPlan();
       } catch (e) {
@@ -117,6 +119,18 @@
     $('logout-btn').onclick = async function () {
       try { await api('/api/auth/logout', { method: 'POST' }); } catch (e) {}
       location.href = '/login.html';
+    };
+    $('withdraw-btn').onclick = async function () {
+      if (!confirm('정말 탈퇴하시겠습니까?\n계정과 퀴즈 기록이 모두 삭제되며 되돌릴 수 없습니다.')) return;
+      $('withdraw-btn').disabled = true;
+      try {
+        await api('/api/auth/withdraw', { method: 'POST' });
+        alert('탈퇴가 완료되었습니다.');
+        location.href = '/login.html';
+      } catch (e) {
+        $('withdraw-btn').disabled = false;
+        alert('탈퇴 처리 중 오류가 발생했습니다: ' + e.message);
+      }
     };
 
     // ── 문제 렌더 ──

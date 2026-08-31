@@ -15,8 +15,10 @@ import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseToken;
 import com.google.firebase.auth.UserRecord;
 import com.planit.global.ApiException;
+import com.planit.quiz.QuizService;
 
 import jakarta.servlet.http.HttpSession;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -29,7 +31,10 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @RestController
 @RequestMapping("/api/auth")
+@RequiredArgsConstructor
 public class AuthController {
+
+	private final QuizService quizService;
 
 	/** REQ-A-008 ~ REQ-A-011: 로그인. body: { "idToken": "..." } */
 	@PostMapping("/firebase-login")
@@ -60,6 +65,29 @@ public class AuthController {
 	public Map<String, String> logout(HttpSession session) {
 		session.invalidate();
 		return Map.of("message", "로그아웃되었습니다");
+	}
+
+	/**
+	 * 회원 탈퇴. 로그인 세션 필요.
+	 *  1) 이 사용자의 Firestore 데이터(퀴즈 기록) 삭제
+	 *  2) Firebase Authentication 계정 삭제 (Admin SDK)
+	 *  3) 세션 무효화
+	 * 되돌릴 수 없다.
+	 */
+	@PostMapping("/withdraw")
+	public Map<String, String> withdraw(HttpSession session) throws Exception {
+		requireFirebaseInitialized();
+		String uid = SessionUser.uid(session);
+		if (uid == null) {
+			throw new ApiException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다");
+		}
+
+		quizService.deleteAllForUser(uid);
+		FirebaseAuth.getInstance().deleteUser(uid);
+		session.invalidate();
+
+		log.info("[withdraw] uid={} 탈퇴 완료", uid);
+		return Map.of("message", "탈퇴가 완료되었습니다");
 	}
 
 	/** 현재 로그인 상태 확인. 로그인 안 되어 있으면 401. */

@@ -27,6 +27,7 @@ import com.planit.quiz.QuizDtos.TodayPlanItem;
 import com.planit.quiz.QuizDtos.TodayPlanResponse;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 퀴즈봇 (REQ-Q-001 ~ REQ-Q-006). 방식 B: 저장소는 Firestore 이고, 접근은 전부 여기(Spring)를 거친다.
@@ -36,6 +37,7 @@ import lombok.RequiredArgsConstructor;
  *   quizzes/{quizId}                      { uid, subjectName, todayScope, quizDate, createdAt, questions[] }
  *   quizzes/{quizId}/answers/{questionNo} { selectedChoice, correct, answeredAt }
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class QuizService {
@@ -177,6 +179,20 @@ public class QuizService {
 			}
 		}
 		return new SummaryResponse(quizId, total, answers.size(), correct);
+	}
+
+	/** 계정 탈퇴 시 해당 사용자의 퀴즈 데이터(quizzes 및 answers 서브컬렉션)를 모두 삭제한다. */
+	public void deleteAllForUser(String uid) throws Exception {
+		List<QueryDocumentSnapshot> quizzes =
+			db().collection("quizzes").whereEqualTo("uid", uid).get().get().getDocuments();
+		for (QueryDocumentSnapshot quiz : quizzes) {
+			DocumentReference quizRef = quiz.getReference();
+			for (DocumentReference answer : quizRef.collection("answers").listDocuments()) {
+				answer.delete().get();
+			}
+			quizRef.delete().get();
+		}
+		log.info("[withdraw] uid={} 퀴즈 {}건 삭제", uid, quizzes.size());
 	}
 
 	// ---- 내부 헬퍼 ----

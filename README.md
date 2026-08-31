@@ -37,7 +37,7 @@ src/main/java/com/planit/
     FirebaseConfig.java          서비스 계정 키로 Admin SDK 초기화
     WebConfig.java               /api/quizzes/** 에 로그인 인터셉터
   auth/
-    AuthController.java          POST /api/auth/firebase-login, /logout, GET /me
+    AuthController.java          POST /api/auth/firebase-login, /logout, /withdraw, GET /me
     AuthInterceptor.java         세션 없으면 401
     SessionUser.java
   quiz/
