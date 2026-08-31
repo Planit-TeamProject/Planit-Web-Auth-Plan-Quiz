@@ -1,10 +1,10 @@
 # 요구사항 ID ↔ 코드 매핑 (김동호 담당)
 
-`02_요구사항정의서.xlsx`의 요구사항 ID가 코드 어디에 있는지 찾는 표. 화면 ID는
-`planit화면흐름도_수정.pptx` 기준.
+`02_요구사항정의서.xlsx`의 요구사항 ID가 코드 어디에 있는지 찾는 표입니다. 화면 ID는
+`planit화면흐름도_수정.pptx` 기준입니다.
 
-Spring + MySQL에서 Firebase로 옮겼기 때문에 구현 위치는 전부 `frontend/`(React) 안이다.
-학습계획입력(REQ-B)은 다른 담당이라 여기 없다.
+Spring + MySQL에서 Firebase로 옮겼기 때문에 구현 위치는 전부 `frontend/`(React) 안입니다.
+학습계획입력(REQ-B)은 다른 담당이라 여기 없습니다.
 
 ## 회원가입 / 로그인 (REQ-A-001 ~ REQ-A-015)
 
