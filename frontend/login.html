@@ -61,10 +61,11 @@
       <div class="field">
         <label for="su-email">이메일</label>
         <input id="su-email" type="email" autocomplete="email" placeholder="you@example.com" />
+        <p id="su-email-msg" class="msg-error hidden"></p>
       </div>
       <div class="field">
         <label for="su-password">비밀번호</label>
-        <input id="su-password" type="password" autocomplete="new-password" placeholder="6자 이상" />
+        <input id="su-password" type="password" autocomplete="new-password" placeholder="7자 이상" />
       </div>
       <div class="field">
         <label for="su-password2">비밀번호 확인</label>
@@ -99,7 +100,7 @@
       switch (err && err.code) {
         case 'auth/invalid-email': return '이메일 형식이 올바르지 않습니다.';
         case 'auth/email-already-in-use': return '이미 사용 중인 이메일입니다.';
-        case 'auth/weak-password': return '비밀번호는 6자 이상이어야 합니다.';
+        case 'auth/weak-password': return '비밀번호는 7자 이상이어야 합니다.';
         case 'auth/user-not-found':
         case 'auth/wrong-password':
         case 'auth/invalid-credential': return '이메일 또는 비밀번호가 올바르지 않습니다.';
@@ -167,25 +168,42 @@
     // ── 회원가입 ──
     $('su-btn').onclick = async function () {
       hideMsg($('su-msg'));
+      hideMsg($('su-email-msg'));
       if (!configReady) { showMsg($('su-msg'), 'Firebase 설정이 채워지지 않았습니다. login.html 의 firebaseConfig 를 확인하세요.'); return; }
       var name = $('su-name').value.trim();
       var email = $('su-email').value.trim();
       var pw = $('su-password').value;
       var pw2 = $('su-password2').value;
       if (!name) { showMsg($('su-msg'), '이름을 입력해 주세요.'); return; }
-      if (pw.length < 6) { showMsg($('su-msg'), '비밀번호는 6자 이상이어야 합니다.'); return; }
+      if (!email) { showMsg($('su-email-msg'), '이메일을 입력해 주세요.'); return; }
+      if (pw.length < 7) { showMsg($('su-msg'), '비밀번호는 7자 이상이어야 합니다.'); return; }
       if (pw !== pw2) { showMsg($('su-msg'), '비밀번호가 일치하지 않습니다.'); return; }
 
       var btn = $('su-btn');
       btn.disabled = true; btn.textContent = '처리 중…';
       try {
+        // 이메일 중복 확인 (방식 B: 서버가 Admin SDK 로 판정). 중복이면 이메일 칸 밑에 안내하고 중단.
+        var chkRes = await fetch('/api/auth/email-available', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: email })
+        });
+        if (chkRes.ok) {
+          var chk = await chkRes.json();
+          if (!chk.available) { showMsg($('su-email-msg'), '사용할 수 없는 이메일 입니다'); return; }
+        }
         var cred = await firebase.auth().createUserWithEmailAndPassword(email, pw);
         await cred.user.updateProfile({ displayName: name });
         // 가입 후 로그아웃하고 로그인 화면으로. 안내 문구·이메일 자동입력 없이 그냥 전환한다.
         await firebase.auth().signOut();
         showView('login');
       } catch (err) {
-        showMsg($('su-msg'), authErrorMessage(err) || '회원가입에 실패했습니다.');
+        // 서버 확인을 통과했더라도 그 사이 선점됐을 수 있음(2차 방어).
+        if (err && err.code === 'auth/email-already-in-use') {
+          showMsg($('su-email-msg'), '사용할 수 없는 이메일 입니다');
+        } else {
+          showMsg($('su-msg'), authErrorMessage(err) || '회원가입에 실패했습니다.');
+        }
       } finally {
         btn.disabled = false; btn.textContent = '회원가입 완료';
       }

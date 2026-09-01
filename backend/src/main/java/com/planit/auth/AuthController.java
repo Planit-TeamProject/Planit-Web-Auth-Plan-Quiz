@@ -15,7 +15,9 @@ import com.google.cloud.firestore.DocumentReference;
 import com.google.cloud.firestore.FieldValue;
 import com.google.cloud.firestore.Firestore;
 import com.google.firebase.FirebaseApp;
+import com.google.firebase.auth.AuthErrorCode;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseToken;
 import com.google.firebase.auth.UserRecord;
 import com.google.firebase.cloud.FirestoreClient;
@@ -43,6 +45,31 @@ import lombok.extern.slf4j.Slf4j;
 public class AuthController {
 
 	private final QuizService quizService;
+
+	/**
+	 * REQ-A-005: 이메일 중복 확인. body: { "email": "..." } → { "available": true/false }
+	 * 방식 B 에서 회원가입은 브라우저가 하므로, 가입 전에 이 API 로 서버(Admin SDK)에 중복 여부를 물어본다.
+	 * (Firebase 콘솔의 email enumeration protection 설정과 무관하게 Admin SDK 는 정확히 판정한다.)
+	 */
+	@PostMapping("/email-available")
+	public Map<String, Boolean> emailAvailable(@RequestBody Map<String, String> body) throws FirebaseAuthException {
+		requireFirebaseInitialized();
+
+		String email = body.get("email");
+		if (email == null || email.isBlank()) {
+			throw ApiException.badRequest("email 이 없습니다");
+		}
+
+		try {
+			FirebaseAuth.getInstance().getUserByEmail(email.trim());
+			return Map.of("available", false); // 조회되면 이미 쓰는 이메일
+		} catch (FirebaseAuthException e) {
+			if (e.getAuthErrorCode() == AuthErrorCode.USER_NOT_FOUND) {
+				return Map.of("available", true);
+			}
+			throw e;
+		}
+	}
 
 	/** REQ-A-008 ~ REQ-A-011: 로그인. body: { "idToken": "..." } */
 	@PostMapping("/firebase-login")
