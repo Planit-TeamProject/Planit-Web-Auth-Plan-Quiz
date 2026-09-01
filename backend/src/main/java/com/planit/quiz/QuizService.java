@@ -42,7 +42,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class QuizService {
 
-	private static final String STUDY_PLAN_RESOURCE = "static/study_plan.json";
+	private static final String STUDY_PLAN_RESOURCE = "study_plan.json";
 
 	private final ObjectMapper objectMapper;
 	private final QuizQuestionGenerator questionGenerator;
@@ -201,7 +201,7 @@ public class QuizService {
 		if (FirebaseApp.getApps().isEmpty()) {
 			throw ApiException.serviceUnavailable(
 				"서버에 Firebase 서비스 계정 키가 없습니다. "
-					+ "src/main/resources/firebase-service-account.json 을 두고 서버를 재시작하세요.");
+					+ "backend/src/main/resources/firebase-service-account.json 을 두고 서버를 재시작하세요.");
 		}
 		return FirestoreClient.getFirestore();
 	}

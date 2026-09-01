@@ -11,20 +11,20 @@ Firebase Admin SDK 로 Firestore 를 다룹니다. 브라우저는 Firestore 를
 
 | 요구사항 ID | 내용 | 구현 위치 |
 |---|---|---|
-| REQ-A-001 | 회원가입 입력 (이름/이메일/비번/비번확인) | `static/login.html` (회원가입 뷰) |
-| REQ-A-002 | 비밀번호 확인 일치 검증 | `static/login.html` (`su-btn` 핸들러) |
+| REQ-A-001 | 회원가입 입력 (이름/이메일/비번/비번확인) | `frontend/login.html` (회원가입 뷰) |
+| REQ-A-002 | 비밀번호 확인 일치 검증 | `frontend/login.html` (`su-btn` 핸들러) |
 | REQ-A-003 | 이메일 형식 검증 | Firebase Auth (`auth/invalid-email`) |
-| REQ-A-004 | 비밀번호 길이 검증 (6자 이상) | `static/login.html` (전송 전 검사, Firebase 자체 최소 6자) |
+| REQ-A-004 | 비밀번호 길이 검증 (6자 이상) | `frontend/login.html` (전송 전 검사, Firebase 자체 최소 6자) |
 | REQ-A-005 | 이메일 중복 검사 | Firebase Auth (`auth/email-already-in-use`) |
 | REQ-A-006 | 이메일 인증 | Firebase Auth 이메일 인증 기능 (콘솔 설정) |
-| REQ-A-007 | 회원가입 완료 후 로그인 화면 이동 | `static/login.html` (가입 후 `signOut` → 로그인 뷰) |
-| REQ-A-008 | 로그인 | `static/login.html` → `POST /api/auth/firebase-login` → `AuthController#firebaseLogin` |
+| REQ-A-007 | 회원가입 완료 후 로그인 화면 이동 | `frontend/login.html` (가입 후 `signOut` → 로그인 뷰) |
+| REQ-A-008 | 로그인 | `frontend/login.html` → `POST /api/auth/firebase-login` → `AuthController#firebaseLogin` |
 | REQ-A-009 | 로그인 실패 처리 | `static/login.html#authErrorKey` |
 | REQ-A-010 | 로그인 성공 시 이동 | `static/login.html#exchangeTokenAndGo` (→ `/quiz.html`) |
 | REQ-A-011 | 세션 관리(로그인 상태 유지) | `AuthController` 가 세션에 uid/email 저장, `application.yml` session.timeout |
 | REQ-A-012 | 로그아웃 | `POST /api/auth/logout` → `AuthController#logout` (세션 무효화) |
 | (추가) | 회원 탈퇴 | `POST /api/auth/withdraw` → `AuthController#withdraw` (quizzes 삭제 + Firestore `users/{uid}` 문서 삭제 + Firebase 계정 삭제 + 세션 무효화). 타 도메인(`study_plan_items` 등) 정리는 팀 논의 필요 |
-| REQ-A-013 | 로그인/회원가입 화면 전환 링크 | `static/login.html` (`to-signup` / `to-login`) |
+| REQ-A-013 | 로그인/회원가입 화면 전환 링크 | `frontend/login.html` (`to-signup` / `to-login`) |
 | REQ-A-014 | Google 소셜 로그인 | `static/login.html#google-btn` (`signInWithPopup`) → 같은 토큰 교환 흐름 |
 | REQ-A-015 | 미인증 계정 로그인 차단 | Firebase Auth (`auth/user-disabled`), Admin SDK `verifyIdToken` |
 
@@ -36,11 +36,11 @@ Firebase Admin SDK 로 Firestore 를 다룹니다. 브라우저는 Firestore 를
 
 | 요구사항 ID | 내용 | 구현 위치 |
 |---|---|---|
-| REQ-Q-001 | 퀴즈 응시 트리거 | `static/quiz.html#start-btn` → `POST /api/quizzes` → `QuizService#start` |
+| REQ-Q-001 | 퀴즈 응시 트리거 | `frontend/quiz.html#start-btn` → `POST /api/quizzes` → `QuizService#start` |
 | REQ-Q-002 | 퀴즈 문제 구성 (기본2 + 응용1) | `MockQuizQuestionGenerator#generate` |
 | REQ-Q-003 | 출제 범위 제한 | `QuizService#todayPlan` (study_plan.json 1일차 → scope) |
 | REQ-Q-004 | 정답 선택 및 제출 | `POST /api/quizzes/{id}/answers/{no}` → `QuizService#submit` (Firestore `answers` 서브컬렉션) |
-| REQ-Q-005 | 정답 확인 및 풀이 표시 | `QuizService#submit` 응답 + `static/quiz.html` 결과 렌더 |
+| REQ-Q-005 | 정답 확인 및 풀이 표시 | `QuizService#submit` 응답 + `frontend/quiz.html` 결과 렌더 |
 | REQ-Q-006 | 퀴즈 결과 요약 | `GET /api/quizzes/{id}/summary` → `QuizService#summary` |
 
 ## 비기능 요구사항 (REQ-NF-009 ~ REQ-NF-023, 김동호 담당분)
@@ -53,7 +53,7 @@ Firebase Admin SDK 로 Firestore 를 다룹니다. 브라우저는 Firestore 를
 | REQ-NF-012 | 인증 메일 유효시간 | Firebase Auth 설정 (콘솔) |
 | REQ-NF-013 | 로그인 반복 실패 차단 | Firebase Auth (`auth/too-many-requests`) |
 | REQ-NF-014 | 로그인/회원가입 2초 이내 응답 | 성능 목표 — 별도 코드 없음 |
-| REQ-NF-015 | 입력 오류 안내 위치 | `static/*.html` 의 `.msg-error` (입력칸 아래 표시) |
+| REQ-NF-015 | 입력 오류 안내 위치 | `frontend/*.html` 의 `.msg-error` (입력칸 아래 표시) |
 | REQ-NF-016 | 예외 로그 | `GlobalExceptionHandler` (서버) + 페이지 `catch` |
 | REQ-NF-017~019 | 목차 업로드/학습계획 접근 제한 | 학습계획입력 담당(다른 담당) |
 | REQ-NF-019 | 본인 데이터만 접근 | `QuizService#requireOwnedQuiz` (quiz 의 uid == 세션 uid), `AuthInterceptor` |
@@ -82,5 +82,5 @@ Firebase Admin SDK 로 Firestore 를 다룹니다. 브라우저는 Firestore 를
 1. **퀴즈 문제 생성 방식**: 지금은 `MockQuizQuestionGenerator` 가 고정 예시 3문제 반환.
    OpenAI 연동(박지민 담당)이 정해지면 새 `QuizQuestionGenerator` 구현체를 `@Primary` 로 등록.
 2. **퀴즈 결과 ↔ 체크리스트/계획 재조정 연동**: 유시우·김경태·박지민 담당 기능과 연결 필요. 미연결.
-3. **서비스 계정 키**: `src/main/resources/firebase-service-account.json` 이 있어야 서버가 Firestore 에
+3. **서비스 계정 키**: `backend/src/main/resources/firebase-service-account.json` 이 있어야 서버가 Firestore 에
    접근합니다. 리더가 콘솔에서 발급해 전달하고, 절대 커밋하지 않습니다.

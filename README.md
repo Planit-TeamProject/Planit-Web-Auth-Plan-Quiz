@@ -53,28 +53,36 @@
 
 ### 폴더
 
+백엔드(Spring)와 프론트엔드(정적 파일)를 폴더로 물리 분리했습니다.
+빌드하면 Gradle 이 `frontend/` 를 정적 리소스로 복사하므로, 실행 URL 은 예전과 같습니다.
+
 ```
-src/main/java/com/planit/
-  PlanitApplication.java
-  config/
-    FirebaseConfig.java          서비스 계정 키로 Admin SDK 초기화
-    WebConfig.java               /api/quizzes/** 에 로그인 인터셉터
-  auth/
-    AuthController.java          POST /api/auth/firebase-login, /logout, /withdraw, GET /me
-    AuthInterceptor.java         세션 없으면 401
-    SessionUser.java
-  quiz/
-    QuizController.java          GET /today-plan, POST /, POST /{id}/answers/{no}, GET /{id}/summary
-    QuizService.java             Firestore(Admin SDK) 로 생성·채점·요약
-    QuizQuestionGenerator.java / MockQuizQuestionGenerator.java   고정 예시 3문제
-  global/
-    ApiException.java / GlobalExceptionHandler.java
-src/main/resources/
-  static/login.html   로그인/회원가입 (Firebase Auth compat CDN)
-  static/quiz.html    퀴즈봇 (Firebase SDK 안 씀, /api/* 만 호출)
-  static/app.css      공용 스타일 (목업 팔레트)
-  static/study_plan.json   퀴즈 "오늘의 일과" 예시 데이터 (서버가 읽음)
-  static/index.html   옛날 7화면 목업 — 참고용 (동작 안 함)
+backend/                         ← Spring Boot (Java 17, Gradle)
+  build.gradle                   processResources 가 ../frontend 를 static 으로 복사
+  src/main/java/com/planit/
+    PlanitApplication.java
+    config/
+      FirebaseConfig.java        서비스 계정 키로 Admin SDK 초기화
+      WebConfig.java             /api/quizzes/** 에 로그인 인터셉터
+    auth/
+      AuthController.java        POST /api/auth/firebase-login, /logout, /withdraw, GET /me
+      AuthInterceptor.java       세션 없으면 401
+      SessionUser.java
+    quiz/
+      QuizController.java        GET /today-plan, POST /, POST /{id}/answers/{no}, GET /{id}/summary
+      QuizService.java           Firestore(Admin SDK) 로 생성·채점·요약
+      QuizQuestionGenerator.java / MockQuizQuestionGenerator.java   고정 예시 3문제
+    global/
+      ApiException.java / GlobalExceptionHandler.java
+  src/main/resources/
+    application.yml
+    study_plan.json              퀴즈 "오늘의 일과" 예시 데이터 (서버가 읽음)
+
+frontend/                        ← 순수 HTML + 바닐라 JS (React/npm 없음)
+  login.html                     로그인/회원가입 (Firebase Auth compat CDN)
+  quiz.html                      퀴즈봇 (Firebase SDK 안 씀, /api/* 만 호출)
+  app.css                        공용 스타일 (목업 팔레트)
+  index.html                     옛날 7화면 목업 — 참고용 (동작 안 함)
 ```
 
 ### 실행
@@ -82,7 +90,7 @@ src/main/resources/
 **1. 서비스 계정 키 넣기 (리더가 발급 → 전달)**
 
 Firebase 콘솔 → 프로젝트 설정(⚙️) → **서비스 계정** → **새 비공개 키 생성** → 받은 JSON 을
-`src/main/resources/` 에 둡니다. 파일명은 둘 중 아무거나:
+`backend/src/main/resources/` 에 둡니다. 파일명은 둘 중 아무거나:
 
 - `firebase-service-account.json` 으로 이름 바꿔서, 또는
 - 콘솔에서 받은 원래 이름 그대로 (예: `planit-ccfff-firebase-adminsdk-xxxx.json`)
@@ -97,11 +105,15 @@ Firebase 콘솔 → 프로젝트 설정(⚙️) → **서비스 계정** → **�
 **2. 서버 실행**
 
 ```bash
+cd backend
 ./gradlew bootRun        # http://localhost:8080
 ```
 
 `http://localhost:8080/login.html` 에서 로그인 → 자동으로 `quiz.html` 로 이동합니다.
 키 파일이 없으면 서버는 뜨지만 `/api/auth/firebase-login` 이 503 을 돌려줍니다.
+
+> 프론트엔드는 `frontend/` 안의 정적 파일입니다. 별도 dev 서버 없이 `backend` 빌드에
+> 포함돼 서빙됩니다. `frontend/` 만 고쳤을 때는 `bootRun` 을 다시 실행하세요.
 
 ### Firestore 구조
 
@@ -192,28 +204,36 @@ quizzes/{quizId}/answers/{questionNo}  { selectedChoice, correct, answeredAt }
 
 ### 構成
 
+バックエンド（Spring）とフロントエンド（静的ファイル）をフォルダで物理的に分離しています。
+ビルド時に Gradle が `frontend/` を静的リソースへコピーするため、実行 URL は従来どおりです。
+
 ```
-src/main/java/com/planit/
-  PlanitApplication.java
-  config/
-    FirebaseConfig.java          サービスアカウントキーで Admin SDK を初期化
-    WebConfig.java               /api/quizzes/** にログインインターセプター
-  auth/
-    AuthController.java          POST /api/auth/firebase-login, /logout, /withdraw, GET /me
-    AuthInterceptor.java         セッションが無ければ 401
-    SessionUser.java
-  quiz/
-    QuizController.java          GET /today-plan, POST /, POST /{id}/answers/{no}, GET /{id}/summary
-    QuizService.java             Firestore（Admin SDK）で生成・採点・集計
-    QuizQuestionGenerator.java / MockQuizQuestionGenerator.java   固定サンプル3問
-  global/
-    ApiException.java / GlobalExceptionHandler.java
-src/main/resources/
-  static/login.html   ログイン/新規登録（Firebase Auth compat CDN）
-  static/quiz.html    クイズボット（Firebase SDK 未使用、/api/* のみ呼ぶ）
-  static/app.css      共通スタイル（モックアップのパレット）
-  static/study_plan.json   クイズの「今日の予定」用サンプルデータ（サーバーが読む）
-  static/index.html   旧・7画面モックアップ — 参考用（動作しません）
+backend/                         ← Spring Boot（Java 17, Gradle）
+  build.gradle                   processResources が ../frontend を static へコピー
+  src/main/java/com/planit/
+    PlanitApplication.java
+    config/
+      FirebaseConfig.java        サービスアカウントキーで Admin SDK を初期化
+      WebConfig.java             /api/quizzes/** にログインインターセプター
+    auth/
+      AuthController.java        POST /api/auth/firebase-login, /logout, /withdraw, GET /me
+      AuthInterceptor.java       セッションが無ければ 401
+      SessionUser.java
+    quiz/
+      QuizController.java        GET /today-plan, POST /, POST /{id}/answers/{no}, GET /{id}/summary
+      QuizService.java           Firestore（Admin SDK）で生成・採点・集計
+      QuizQuestionGenerator.java / MockQuizQuestionGenerator.java   固定サンプル3問
+    global/
+      ApiException.java / GlobalExceptionHandler.java
+  src/main/resources/
+    application.yml
+    study_plan.json              クイズの「今日の予定」用サンプルデータ（サーバーが読む）
+
+frontend/                        ← 素の HTML + バニラ JS（React/npm なし）
+  login.html                     ログイン/新規登録（Firebase Auth compat CDN）
+  quiz.html                      クイズボット（Firebase SDK 未使用、/api/* のみ呼ぶ）
+  app.css                        共通スタイル（モックアップのパレット）
+  index.html                     旧・7画面モックアップ — 参考用（動作しません）
 ```
 
 ### 実行方法
@@ -221,7 +241,7 @@ src/main/resources/
 **1. サービスアカウントキーを置く（リーダーが発行して共有）**
 
 Firebase コンソール → プロジェクトの設定（⚙️）→ **サービス アカウント** → **新しい秘密鍵の生成**
-→ 受け取った JSON を `src/main/resources/` に置きます。ファイル名はどちらでも可：
+→ 受け取った JSON を `backend/src/main/resources/` に置きます。ファイル名はどちらでも可：
 
 - `firebase-service-account.json` にリネームする、または
 - コンソールで受け取った元の名前のまま（例：`planit-ccfff-firebase-adminsdk-xxxx.json`）
@@ -236,11 +256,15 @@ Firebase コンソール → プロジェクトの設定（⚙️）→ **サー
 **2. サーバーの起動**
 
 ```bash
+cd backend
 ./gradlew bootRun        # http://localhost:8080
 ```
 
 `http://localhost:8080/login.html` でログインすると、自動的に `quiz.html` へ移動します。
 キーファイルが無くてもサーバーは起動しますが、`/api/auth/firebase-login` は 503 を返します。
+
+> フロントエンドは `frontend/` 内の静的ファイルです。専用の dev サーバーは無く、`backend`
+> のビルドに含まれて配信されます。`frontend/` だけ変更したときは `bootRun` を再実行してください。
 
 ### Firestore の構造
 
@@ -333,28 +357,37 @@ all data goes through Spring. (`login.html` loads `firebase-auth` only, never
 
 ### Layout
 
+Backend (Spring) and frontend (static files) are split into separate folders.
+At build time Gradle copies `frontend/` into the static resources, so the runtime URLs
+are unchanged.
+
 ```
-src/main/java/com/planit/
-  PlanitApplication.java
-  config/
-    FirebaseConfig.java          Initializes the Admin SDK from the service-account key
-    WebConfig.java               Login interceptor on /api/quizzes/**
-  auth/
-    AuthController.java          POST /api/auth/firebase-login, /logout, /withdraw, GET /me
-    AuthInterceptor.java         401 if there's no session
-    SessionUser.java
-  quiz/
-    QuizController.java          GET /today-plan, POST /, POST /{id}/answers/{no}, GET /{id}/summary
-    QuizService.java             Create / grade / summarize via Firestore (Admin SDK)
-    QuizQuestionGenerator.java / MockQuizQuestionGenerator.java   fixed sample of 3 questions
-  global/
-    ApiException.java / GlobalExceptionHandler.java
-src/main/resources/
-  static/login.html   Login / sign-up (Firebase Auth compat CDN)
-  static/quiz.html    Quiz bot (no Firebase SDK; calls /api/* only)
-  static/app.css      Shared styles (mockup palette)
-  static/study_plan.json   Sample data for the quiz's "today's plan" (read by the server)
-  static/index.html   Old 7-screen mockup — reference only (doesn't work)
+backend/                         ← Spring Boot (Java 17, Gradle)
+  build.gradle                   processResources copies ../frontend into static
+  src/main/java/com/planit/
+    PlanitApplication.java
+    config/
+      FirebaseConfig.java        Initializes the Admin SDK from the service-account key
+      WebConfig.java             Login interceptor on /api/quizzes/**
+    auth/
+      AuthController.java        POST /api/auth/firebase-login, /logout, /withdraw, GET /me
+      AuthInterceptor.java       401 if there's no session
+      SessionUser.java
+    quiz/
+      QuizController.java        GET /today-plan, POST /, POST /{id}/answers/{no}, GET /{id}/summary
+      QuizService.java           Create / grade / summarize via Firestore (Admin SDK)
+      QuizQuestionGenerator.java / MockQuizQuestionGenerator.java   fixed sample of 3 questions
+    global/
+      ApiException.java / GlobalExceptionHandler.java
+  src/main/resources/
+    application.yml
+    study_plan.json              Sample data for the quiz's "today's plan" (read by the server)
+
+frontend/                        ← Plain HTML + vanilla JS (no React/npm)
+  login.html                     Login / sign-up (Firebase Auth compat CDN)
+  quiz.html                      Quiz bot (no Firebase SDK; calls /api/* only)
+  app.css                        Shared styles (mockup palette)
+  index.html                     Old 7-screen mockup — reference only (doesn't work)
 ```
 
 ### Running it
@@ -362,7 +395,7 @@ src/main/resources/
 **1. Add the service-account key (the lead generates and shares it)**
 
 Firebase console → Project settings (⚙️) → **Service accounts** → **Generate new private key**
-→ put the JSON under `src/main/resources/`. Either filename works:
+→ put the JSON under `backend/src/main/resources/`. Either filename works:
 
 - rename it to `firebase-service-account.json`, or
 - keep the original name from the console (e.g. `planit-ccfff-firebase-adminsdk-xxxx.json`)
@@ -377,11 +410,16 @@ share it only over Notion/Drive. It's completely different from the `firebaseCon
 **2. Start the server**
 
 ```bash
+cd backend
 ./gradlew bootRun        # http://localhost:8080
 ```
 
 Log in at `http://localhost:8080/login.html` → you're taken to `quiz.html` automatically.
 If the key file is missing the server still starts, but `/api/auth/firebase-login` returns 503.
+
+> The frontend is the static files in `frontend/`. There's no separate dev server — it's
+> bundled into the `backend` build and served from there. Re-run `bootRun` after editing
+> `frontend/`.
 
 ### Firestore shape
 

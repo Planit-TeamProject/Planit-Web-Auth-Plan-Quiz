@@ -23,7 +23,7 @@ import lombok.extern.slf4j.Slf4j;
  * 서비스 계정 키를 찾는 순서:
  *   1) 환경변수 또는 시스템 프로퍼티 FIREBASE_CREDENTIALS (키 파일 절대경로)
  *   2) 클래스패스의 firebase-service-account.json
- *   3) src/main/resources/ 안의 *-firebase-adminsdk-*.json (콘솔에서 받은 원래 파일명 그대로 둬도 됨)
+ *   3) backend/src/main/resources/ 안의 *-firebase-adminsdk-*.json (콘솔에서 받은 원래 파일명 그대로 둬도 됨)
  *
  * 이 키는 진짜 비밀값이라 절대 커밋하지 않는다(.gitignore 참고). 리더가 발급해서
  * 노션/드라이브로만 전달한다. login.html 의 firebaseConfig(apiKey 등)와는 완전히 다른 값이다.
@@ -48,8 +48,8 @@ public class FirebaseConfig {
 			if (in == null) {
 				log.warn("[Firebase] 서비스 계정 키를 찾지 못했습니다. 토큰 검증/Firestore API 는 동작하지 않습니다.\n"
 					+ "  Firebase 콘솔 > 프로젝트 설정 > 서비스 계정 > 새 비공개 키 생성 으로 받은 JSON 을\n"
-					+ "  src/main/resources/firebase-service-account.json 으로 저장하거나, 원래 파일명(예:\n"
-					+ "  planit-ccfff-firebase-adminsdk-xxxx.json) 그대로 src/main/resources/ 에 두세요.");
+					+ "  backend/src/main/resources/firebase-service-account.json 으로 저장하거나, 원래 파일명(예:\n"
+					+ "  planit-ccfff-firebase-adminsdk-xxxx.json) 그대로 backend/src/main/resources/ 에 두세요.");
 				return;
 			}
 			FirebaseOptions options = FirebaseOptions.builder()
@@ -81,7 +81,7 @@ public class FirebaseConfig {
 			return fixed.getInputStream();
 		}
 
-		// 3) src/main/resources/*-firebase-adminsdk-*.json (콘솔에서 받은 원래 파일명)
+		// 3) backend/src/main/resources/*-firebase-adminsdk-*.json (콘솔에서 받은 원래 파일명)
 		Path dir = Paths.get(RESOURCES_DIR);
 		if (Files.isDirectory(dir)) {
 			try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir, ADMINSDK_GLOB)) {

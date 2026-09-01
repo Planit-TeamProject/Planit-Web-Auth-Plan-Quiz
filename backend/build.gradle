@@ -39,6 +39,15 @@ dependencies {
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
+// 프론트엔드(../frontend)는 별도 폴더에 있고, 빌드 시 정적 리소스로 복사한다.
+// 이렇게 하면 bootRun/bootJar 모두 http://localhost:8080/login.html 로 그대로 서빙된다.
+processResources {
+	from("$projectDir/../frontend") {
+		into 'static'
+	}
+	duplicatesStrategy = DuplicatesStrategy.INCLUDE
+}
+
 tasks.named('test') {
 	useJUnitPlatform()
 	// 참고: 경로에 한글이 섞여 있으면(예: 팀프로젝트/노예) Windows 기본 코드페이지에 따라
