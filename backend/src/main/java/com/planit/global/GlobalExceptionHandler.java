@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import com.google.firebase.auth.FirebaseAuthException;
 
@@ -26,6 +27,12 @@ public class GlobalExceptionHandler {
 		log.warn("[FirebaseAuthException] {}", e.getMessage());
 		return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
 			.body(Map.of("message", "로그인 인증에 실패했습니다"));
+	}
+
+	/** 브라우저가 자동 요청하는 /favicon.ico 등 없는 정적 리소스 → 스택트레이스 없이 조용히 404. */
+	@ExceptionHandler(NoResourceFoundException.class)
+	public ResponseEntity<Map<String, String>> handleNoResource(NoResourceFoundException e) {
+		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "리소스를 찾을 수 없습니다"));
 	}
 
 	@ExceptionHandler(Exception.class)

@@ -1,5 +1,7 @@
 package com.planit.auth;
 
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.springframework.http.HttpStatus;
@@ -9,6 +11,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.google.cloud.firestore.DocumentReference;
+import com.google.cloud.firestore.FieldValue;
 import com.google.cloud.firestore.Firestore;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
@@ -27,8 +31,11 @@ import lombok.extern.slf4j.Slf4j;
  * 방식 B 인증 흐름.
  *  1) 브라우저: Firebase JS 로 이메일/비밀번호(또는 구글) 로그인 → user.getIdToken()
  *  2) 브라우저 → POST /api/auth/firebase-login { idToken }
- *  3) 여기서 Firebase Admin SDK 로 토큰 검증 → 세션에 uid/email 저장
+ *  3) 여기서 Firebase Admin SDK 로 토큰 검증 → 세션에 uid/email 저장 + Firestore users/{uid} upsert
  *  4) 이후 모든 데이터 API 는 세션 쿠키만으로 인증 (브라우저는 Firestore 를 직접 건드리지 않음)
+ *
+ * 회원가입은 브라우저에서 Firebase Auth 계정만 만들고(방식 B: 브라우저는 Firestore 접근 안 함),
+ * users/{uid} 프로필 문서는 첫 로그인 때 서버가 만든다(아래 upsertUserProfile).
  */
 @Slf4j
 @RestController
@@ -41,7 +48,7 @@ public class AuthController {
 	/** REQ-A-008 ~ REQ-A-011: 로그인. body: { "idToken": "..." } */
 	@PostMapping("/firebase-login")
 	public Map<String, String> firebaseLogin(@RequestBody Map<String, String> body, HttpSession session)
-		throws FirebaseAuthException {
+		throws Exception {
 		requireFirebaseInitialized();
 
 		String idToken = body.get("idToken");
@@ -58,8 +65,40 @@ public class AuthController {
 		session.setAttribute(SessionUser.EMAIL, email);
 		session.setAttribute(SessionUser.NAME, name);
 
+		upsertUserProfile(uid, email, name);
+
 		log.info("[login] uid={} email={} name={}", uid, email, name);
 		return Map.of("uid", uid, "email", nullSafe(email), "name", nullSafe(name));
+	}
+
+	/**
+	 * Firestore users/{uid} 프로필 문서를 만든다(없으면) / 최신화한다(있으면).
+	 * 회원가입 직후 첫 로그인에서 문서가 처음 생성되고, createdAt 은 그때 한 번만 박힌다.
+	 */
+	private void upsertUserProfile(String uid, String email, String name) throws Exception {
+		Firestore db = FirestoreClient.getFirestore();
+		DocumentReference ref = db.collection("users").document(uid);
+
+		if (ref.get().get().exists()) {
+			Map<String, Object> update = new HashMap<>();
+			if (email != null) {
+				update.put("email", email);
+			}
+			if (name != null) {
+				update.put("name", name);
+			}
+			if (!update.isEmpty()) {
+				ref.update(update).get();
+			}
+			return;
+		}
+
+		Map<String, Object> doc = new LinkedHashMap<>();
+		doc.put("email", nullSafe(email));
+		doc.put("name", nullSafe(name));
+		doc.put("createdAt", FieldValue.serverTimestamp());
+		ref.set(doc).get();
+		log.info("[login] uid={} users 문서 생성", uid);
 	}
 
 	/** REQ-A-012: 로그아웃. 세션 무효화. */
