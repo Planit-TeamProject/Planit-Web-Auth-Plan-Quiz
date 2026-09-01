@@ -9,11 +9,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.google.cloud.firestore.Firestore;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseToken;
 import com.google.firebase.auth.UserRecord;
+import com.google.firebase.cloud.FirestoreClient;
 import com.planit.global.ApiException;
 import com.planit.quiz.QuizService;
 
@@ -70,8 +72,9 @@ public class AuthController {
 	/**
 	 * 회원 탈퇴. 로그인 세션 필요.
 	 *  1) 이 사용자의 Firestore 데이터(퀴즈 기록) 삭제
-	 *  2) Firebase Authentication 계정 삭제 (Admin SDK)
-	 *  3) 세션 무효화
+	 *  2) Firestore users/{uid} 프로필 문서 삭제 (하위 컬렉션까지)
+	 *  3) Firebase Authentication 계정 삭제 (Admin SDK)
+	 *  4) 세션 무효화
 	 * 되돌릴 수 없다.
 	 */
 	@PostMapping("/withdraw")
@@ -83,11 +86,19 @@ public class AuthController {
 		}
 
 		quizService.deleteAllForUser(uid);
+		deleteUserDocument(uid);
 		FirebaseAuth.getInstance().deleteUser(uid);
 		session.invalidate();
 
 		log.info("[withdraw] uid={} 탈퇴 완료", uid);
 		return Map.of("message", "탈퇴가 완료되었습니다");
+	}
+
+	/** 탈퇴 시 Firestore 의 users/{uid} 문서와 그 하위 컬렉션을 통째로 삭제한다. */
+	private void deleteUserDocument(String uid) throws Exception {
+		Firestore db = FirestoreClient.getFirestore();
+		db.recursiveDelete(db.collection("users").document(uid)).get();
+		log.info("[withdraw] uid={} users 문서 삭제 완료", uid);
 	}
 
 	/** 현재 로그인 상태 확인. 로그인 안 되어 있으면 401. */

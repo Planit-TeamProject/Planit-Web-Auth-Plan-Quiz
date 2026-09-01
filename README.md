@@ -125,19 +125,19 @@ quizzes/{quizId}/answers/{questionNo}  { selectedChoice, correct, answeredAt }
 ### 회원 탈퇴
 
 `quiz.html` 의 "회원 탈퇴" 버튼 → `POST /api/auth/withdraw` (로그인 세션 필요).
-서버가 Admin SDK 로 ① 그 사용자의 `quizzes` 데이터 삭제 ② Firebase Auth 계정 삭제
-③ 세션 무효화 를 처리합니다. 브라우저에서는 `localStorage` 의 저장된 이메일도 지웁니다.
+서버가 Admin SDK 로 ① 그 사용자의 `quizzes` 데이터 삭제 ② Firestore `users/{uid}` 문서
+삭제(하위 컬렉션까지 `recursiveDelete`) ③ Firebase Auth 계정 삭제 ④ 세션 무효화 를
+처리합니다. 브라우저에서는 `localStorage` 의 저장된 이메일도 지웁니다.
 
-`users/{uid}` 문서와 다른 도메인(`study_plan_items` 등) 데이터는 **건드리지 않습니다** —
-방식 B 웹은 `users` 에 쓰지 않고, 그 컬렉션은 팀 공유이기 때문. "탈퇴 시 전체 데이터 정리"는
-팀 조율이 필요합니다 (아래 참고).
+다른 도메인(`study_plan_items` 등) 데이터는 아직 **건드리지 않습니다** — 팀 조율이
+필요합니다 (아래 참고).
 
 ### 아직 안 한 것
 
 - 퀴즈 문제가 고정 3개입니다. OpenAI 연동은 박지민 담당이고, 정해지면
   `MockQuizQuestionGenerator` 대신 새 `QuizQuestionGenerator` 구현체를 `@Primary` 로 등록하면 됩니다.
 - 퀴즈 결과를 체크리스트/계획 재조정과 연결하는 부분은 아직입니다.
-- 탈퇴 시 `users/{uid}` 와 타 도메인 데이터까지 정리하는 방법(예: Auth `onDelete`
+- 탈퇴 시 타 도메인 데이터(`study_plan_items` 등)까지 정리하는 방법(예: Auth `onDelete`
   Cloud Function 하나로 전부 삭제)은 팀 논의가 필요합니다.
 
 </details>
@@ -265,20 +265,20 @@ quizzes/{quizId}/answers/{questionNo}  { selectedChoice, correct, answeredAt }
 ### 退会
 
 `quiz.html` の「회원 탈퇴」ボタン → `POST /api/auth/withdraw`（ログインセッションが必要）。
-サーバーが Admin SDK で、(1) そのユーザーの `quizzes` データを削除、(2) Firebase Auth の
-アカウントを削除、(3) セッションを無効化します。ブラウザ側では `localStorage` に保存した
+サーバーが Admin SDK で、(1) そのユーザーの `quizzes` データを削除、(2) Firestore の
+`users/{uid}` ドキュメントを削除（サブコレクションごと `recursiveDelete`）、(3) Firebase Auth の
+アカウントを削除、(4) セッションを無効化します。ブラウザ側では `localStorage` に保存した
 メールアドレスも消します。
 
-`users/{uid}` ドキュメントや他ドメインのデータ（`study_plan_items` など）には**触れません** —
-方式B のウェブは `users` に書き込まず、このコレクションはチーム共有だからです。
-アカウントデータの完全な後片付けはチームでの調整が必要です（下記参照）。
+他ドメインのデータ（`study_plan_items` など）にはまだ**触れません** — チームでの調整が
+必要です（下記参照）。
 
 ### まだやっていないこと
 
 - クイズの問題は固定の3問です。OpenAI 連携はパク・ジミン担当で、方式が決まったら
   `MockQuizQuestionGenerator` の代わりに新しい `QuizQuestionGenerator` 実装を `@Primary` で登録します。
 - クイズ結果をチェックリスト／再計画機能とつなぐ部分はまだです。
-- 退会時に `users/{uid}` や他ドメインのデータまで削除する方法（例：Auth の `onDelete`
+- 退会時に他ドメインのデータ（`study_plan_items` など）まで削除する方法（例：Auth の `onDelete`
   Cloud Function ひとつで全部消す）はチームでの検討が必要です。
 
 </details>
@@ -407,12 +407,12 @@ quizzes/{quizId}/answers/{questionNo}  { selectedChoice, correct, answeredAt }
 
 The "회원 탈퇴" button in `quiz.html` → `POST /api/auth/withdraw` (needs a login session).
 The server, via the Admin SDK: (1) deletes that user's `quizzes` data, (2) deletes the
-Firebase Auth account, (3) invalidates the session. The browser also clears the saved
+Firestore `users/{uid}` document (`recursiveDelete`, subcollections included), (3) deletes
+the Firebase Auth account, (4) invalidates the session. The browser also clears the saved
 email from `localStorage`.
 
-It does **not** touch the `users/{uid}` document or other domains' data
-(`study_plan_items`, etc.) — Approach B's web never writes to `users`, and that collection
-is shared across the team. Full account-data cleanup needs a team decision (see below).
+It does **not** yet touch other domains' data (`study_plan_items`, etc.) — that needs a
+team decision (see below).
 
 ### Not done yet
 
@@ -420,7 +420,7 @@ is shared across the team. Full account-data cleanup needs a team decision (see 
   it's decided, register a new `QuizQuestionGenerator` implementation as `@Primary` in place
   of `MockQuizQuestionGenerator`.
 - Wiring quiz results into the checklist / re-planning features isn't done yet.
-- Cleaning up `users/{uid}` and other-domain data on withdrawal (e.g. one Auth `onDelete`
-  Cloud Function that wipes everything) needs a team decision.
+- Cleaning up other-domain data (`study_plan_items`, etc.) on withdrawal (e.g. one Auth
+  `onDelete` Cloud Function that wipes everything) needs a team decision.
 
 </details>

@@ -14,7 +14,7 @@ Firebase Admin SDK 로 Firestore 를 다룹니다. 브라우저는 Firestore 를
 | REQ-A-001 | 회원가입 입력 (이름/이메일/비번/비번확인) | `static/login.html` (회원가입 뷰) |
 | REQ-A-002 | 비밀번호 확인 일치 검증 | `static/login.html` (`su-btn` 핸들러) |
 | REQ-A-003 | 이메일 형식 검증 | Firebase Auth (`auth/invalid-email`) |
-| REQ-A-004 | 비밀번호 길이 검증 (8자 이상) | `static/login.html` (전송 전 검사, Firebase 자체 최소 6자) |
+| REQ-A-004 | 비밀번호 길이 검증 (6자 이상) | `static/login.html` (전송 전 검사, Firebase 자체 최소 6자) |
 | REQ-A-005 | 이메일 중복 검사 | Firebase Auth (`auth/email-already-in-use`) |
 | REQ-A-006 | 이메일 인증 | Firebase Auth 이메일 인증 기능 (콘솔 설정) |
 | REQ-A-007 | 회원가입 완료 후 로그인 화면 이동 | `static/login.html` (가입 후 `signOut` → 로그인 뷰) |
@@ -23,7 +23,7 @@ Firebase Admin SDK 로 Firestore 를 다룹니다. 브라우저는 Firestore 를
 | REQ-A-010 | 로그인 성공 시 이동 | `static/login.html#exchangeTokenAndGo` (→ `/quiz.html`) |
 | REQ-A-011 | 세션 관리(로그인 상태 유지) | `AuthController` 가 세션에 uid/email 저장, `application.yml` session.timeout |
 | REQ-A-012 | 로그아웃 | `POST /api/auth/logout` → `AuthController#logout` (세션 무효화) |
-| (추가) | 회원 탈퇴 | `POST /api/auth/withdraw` → `AuthController#withdraw` (quizzes 삭제 + Firebase 계정 삭제 + 세션 무효화). `users/{uid}`·타 도메인 정리는 팀 논의 필요 |
+| (추가) | 회원 탈퇴 | `POST /api/auth/withdraw` → `AuthController#withdraw` (quizzes 삭제 + Firestore `users/{uid}` 문서 삭제 + Firebase 계정 삭제 + 세션 무효화). 타 도메인(`study_plan_items` 등) 정리는 팀 논의 필요 |
 | REQ-A-013 | 로그인/회원가입 화면 전환 링크 | `static/login.html` (`to-signup` / `to-login`) |
 | REQ-A-014 | Google 소셜 로그인 | `static/login.html#google-btn` (`signInWithPopup`) → 같은 토큰 교환 흐름 |
 | REQ-A-015 | 미인증 계정 로그인 차단 | Firebase Auth (`auth/user-disabled`), Admin SDK `verifyIdToken` |
