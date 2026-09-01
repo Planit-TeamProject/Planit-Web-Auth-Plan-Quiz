@@ -23,6 +23,41 @@ Firebaseプロジェクト(`planit-ccfff`)を使っているため、アプリ�
 | DB | Firestore (`users`, `quizzes`) |
 | バックエンド | Spring Boot — 静的ファイルの配信のみ、DBは使わない |
 
+## 担当機能の詳細
+
+### 1. 会員登録 / ログイン — REQ-A-001~015
+
+| ファイル | 役割 |
+|---|---|
+| `pages/SignupPage.tsx` | 名前/メール/パスワード入力、パスワード確認一致・形式検証(REQ-A-002~004)、登録成功後にログイン画面へ遷移(REQ-A-007) |
+| `pages/LoginPage.tsx` | メール/パスワードログイン、Googleログインボタン、「メール記憶」オプトイン |
+| `api/auth.ts` `signUp()` | Firebase Authアカウント作成 + 表示名保存 + Firestore `users/{uid}` ドキュメント作成 |
+| `api/auth.ts` `signIn()` | メール/パスワードログイン |
+| `api/auth.ts` `signInWithGoogle()` / `consumeRedirectResult()` | Googleログイン(REQ-A-014)。ポップアップがブロックされた場合は自動でリダイレクト方式に切り替え |
+| `api/auth.ts` `authErrorMessage()` | Firebaseのエラーコード(`auth/invalid-email`等)を画面表示用の翻訳キーにマッピング(REQ-NF-015) |
+| `auth/useCurrentUser.ts` | ログイン状態を購読するフック — セッション維持(REQ-A-011) |
+| `firebase.ts` | Firebaseプロジェクトの初期化、`.env.local`設定漏れの検知 |
+
+- パスワードの保存/暗号化(REQ-NF-009)、メールの一意性(REQ-NF-010)、セッション保存(REQ-NF-011)、
+  ログイン連続失敗のロック(REQ-NF-013)はすべてFirebase Authenticationが処理 — 独自コードなし。
+
+### 2. ログアウト — REQ-A-012
+
+- `App.tsx`の`TopNav` → `handleLogout()` → `api/auth.ts`の`signOutUser()`を呼び出した後、ログイン画面へ遷移。
+
+### 3. クイズボット — REQ-Q-001~006
+
+| ファイル | 役割 |
+|---|---|
+| `pages/QuizPage.tsx` | クイズ開始ボタン、回答提出UI、結果要約表示 |
+| `api/quiz.ts` `startQuiz()` | 今日の学習範囲からBASIC2問+APPLIED1問を生成し、Firestoreの`quizzes`に保存(REQ-Q-001~003) |
+| `api/quiz.ts` `submitAnswer()` | 問題を1つ提出 → 即座に採点 → `quizzes/{id}/answers/{questionNo}`に保存(REQ-Q-004~005) |
+| `api/quiz.ts` `getQuizSummary()` | 提出済みの回答を集計して正解数を要約(REQ-Q-006) |
+| `api/quizQuestions.ts` `generateQuestions()` | 問題生成ロジック。現在は科目/範囲に関係なく固定の例題3問を返す — OpenAI連携(パク・ジミン)までの暫定実装 |
+
+要件IDひとつひとつまで対応させた表は
+[`docs/requirements-mapping.md`](docs/requirements-mapping.md)にあります。
+
 ## フォルダ構成
 
 ```
