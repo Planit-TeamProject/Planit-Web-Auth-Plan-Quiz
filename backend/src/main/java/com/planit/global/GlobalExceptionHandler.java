@@ -4,6 +4,7 @@ import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
@@ -33,6 +34,12 @@ public class GlobalExceptionHandler {
 	@ExceptionHandler(NoResourceFoundException.class)
 	public ResponseEntity<Map<String, String>> handleNoResource(NoResourceFoundException e) {
 		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "리소스를 찾을 수 없습니다"));
+	}
+
+	/** 요청 본문 JSON 이 깨졌을 때 → 500 이 아니라 400. */
+	@ExceptionHandler(HttpMessageNotReadableException.class)
+	public ResponseEntity<Map<String, String>> handleUnreadable(HttpMessageNotReadableException e) {
+		return ResponseEntity.badRequest().body(Map.of("message", "요청 본문 형식이 올바르지 않습니다"));
 	}
 
 	@ExceptionHandler(Exception.class)

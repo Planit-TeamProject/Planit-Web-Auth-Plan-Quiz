@@ -16,7 +16,6 @@ import com.google.cloud.firestore.FieldValue;
 import com.google.cloud.firestore.Firestore;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseToken;
 import com.google.firebase.auth.UserRecord;
 import com.google.firebase.cloud.FirestoreClient;
@@ -74,31 +73,36 @@ public class AuthController {
 	/**
 	 * Firestore users/{uid} 프로필 문서를 만든다(없으면) / 최신화한다(있으면).
 	 * 회원가입 직후 첫 로그인에서 문서가 처음 생성되고, createdAt 은 그때 한 번만 박힌다.
+	 * 프로필 문서 쓰기가 실패해도 로그인 자체는 막지 않는다(다음 로그인에서 다시 시도).
 	 */
-	private void upsertUserProfile(String uid, String email, String name) throws Exception {
-		Firestore db = FirestoreClient.getFirestore();
-		DocumentReference ref = db.collection("users").document(uid);
+	private void upsertUserProfile(String uid, String email, String name) {
+		try {
+			Firestore db = FirestoreClient.getFirestore();
+			DocumentReference ref = db.collection("users").document(uid);
 
-		if (ref.get().get().exists()) {
-			Map<String, Object> update = new HashMap<>();
-			if (email != null) {
-				update.put("email", email);
+			if (ref.get().get().exists()) {
+				Map<String, Object> update = new HashMap<>();
+				if (email != null) {
+					update.put("email", email);
+				}
+				if (name != null) {
+					update.put("name", name);
+				}
+				if (!update.isEmpty()) {
+					ref.update(update).get();
+				}
+				return;
 			}
-			if (name != null) {
-				update.put("name", name);
-			}
-			if (!update.isEmpty()) {
-				ref.update(update).get();
-			}
-			return;
+
+			Map<String, Object> doc = new LinkedHashMap<>();
+			doc.put("email", nullSafe(email));
+			doc.put("name", nullSafe(name));
+			doc.put("createdAt", FieldValue.serverTimestamp());
+			ref.set(doc).get();
+			log.info("[login] uid={} users 문서 생성", uid);
+		} catch (Exception e) {
+			log.warn("[login] uid={} users 프로필 upsert 실패(로그인은 계속): {}", uid, e.getMessage());
 		}
-
-		Map<String, Object> doc = new LinkedHashMap<>();
-		doc.put("email", nullSafe(email));
-		doc.put("name", nullSafe(name));
-		doc.put("createdAt", FieldValue.serverTimestamp());
-		ref.set(doc).get();
-		log.info("[login] uid={} users 문서 생성", uid);
 	}
 
 	/** REQ-A-012: 로그아웃. 세션 무효화. */
