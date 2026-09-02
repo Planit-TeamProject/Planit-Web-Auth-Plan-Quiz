@@ -118,7 +118,7 @@ cd backend
 ### Firestore 구조
 
 ```
-quizzes/{quizId}                       { uid, subjectName, todayScope, quizDate,
+quizzes/{quizId}                       { memberid, subjectName, todayScope, quizDate,
                                          createdAt, questions[] }
 quizzes/{quizId}/answers/{questionNo}  { selectedChoice, correct, answeredAt }
 ```
@@ -269,7 +269,7 @@ cd backend
 ### Firestore の構造
 
 ```
-quizzes/{quizId}                       { uid, subjectName, todayScope, quizDate,
+quizzes/{quizId}                       { memberid, subjectName, todayScope, quizDate,
                                          createdAt, questions[] }
 quizzes/{quizId}/answers/{questionNo}  { selectedChoice, correct, answeredAt }
 ```
@@ -424,7 +424,7 @@ If the key file is missing the server still starts, but `/api/auth/firebase-logi
 ### Firestore shape
 
 ```
-quizzes/{quizId}                       { uid, subjectName, todayScope, quizDate,
+quizzes/{quizId}                       { memberid, subjectName, todayScope, quizDate,
                                          createdAt, questions[] }
 quizzes/{quizId}/answers/{questionNo}  { selectedChoice, correct, answeredAt }
 ```

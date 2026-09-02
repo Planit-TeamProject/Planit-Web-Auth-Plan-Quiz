@@ -56,7 +56,7 @@ Firebase Admin SDK 로 Firestore 를 다룹니다. 브라우저는 Firestore 를
 | REQ-NF-015 | 입력 오류 안내 위치 | `frontend/*.html` 의 `.msg-error` (입력칸 아래 표시) |
 | REQ-NF-016 | 예외 로그 | `GlobalExceptionHandler` (서버) + 페이지 `catch` |
 | REQ-NF-017~019 | 목차 업로드/학습계획 접근 제한 | 학습계획입력 담당(다른 담당) |
-| REQ-NF-019 | 본인 데이터만 접근 | `QuizService#requireOwnedQuiz` (quiz 의 uid == 세션 uid), `AuthInterceptor` |
+| REQ-NF-019 | 본인 데이터만 접근 | `QuizService#requireOwnedQuiz` (quiz 의 `memberid` == 세션 uid), `AuthInterceptor` |
 | REQ-NF-022 | 브라우저 지원 | 정적 HTML + 바닐라 JS |
 | REQ-NF-023 | 퀴즈 응시 기록 보존 | Firestore `quizzes/{id}/answers` (삭제 API 없음) |
 
@@ -68,7 +68,7 @@ Firebase Admin SDK 로 Firestore 를 다룹니다. 브라우저는 Firestore 를
 | schema.sql (MySQL, 김동호 담당분) | 이 저장소(방식 B) 실제 구현 |
 |---|---|
 | `member` (`firebase_uid`, `name`, `is_deleted`, `created_at` …) | **테이블 없음.** 로그인 시 세션에 `uid`(=firebase_uid)·`email`·`name` 저장. 탈퇴는 `is_deleted` 대신 Firebase 계정 완전 삭제 (`AuthController#withdraw`) |
-| `quiz` (`member_id`, `study_plan_id`, `quiz_date` …) | Firestore `quizzes/{quizId}` = `{ uid, subjectName, todayScope, quizDate, createdAt }` (`study_plan_id` 는 방식 B 에서 안 씀) |
+| `quiz` (`member_id`, `study_plan_id`, `quiz_date` …) | Firestore `quizzes/{quizId}` = `{ memberid, subjectName, todayScope, quizDate, createdAt }`. `memberid` = 로그인 세션 Firebase UID (팀원 `study_plan_items.memberid` 와 같은 키). `study_plan_id` 는 방식 B 에서 안 씀 |
 | `quiz_question` (`quiz_id`, `question_no`, `question_type`, `choice1~4`, `answer_no`, `explanation` …) | 위 문서의 `questions[]` 배열 요소 |
 | `quiz_answer` (`quiz_question_id`, `member_id`, `selected_choice`, `is_correct` …) | Firestore `quizzes/{quizId}/answers/{questionNo}` = `{ selectedChoice, correct, answeredAt }` |
 | `study_plan`, `study_plan_time_slot`, `study_plan_weekday_minutes`, `study_plan_excluded_date` | **미구현.** 학습계획입력 화면은 프론트에서 제거됨. 실제 담당·구조는 유시우·박지민과 협의 필요 (schema.sql 의 "TODO 논의필요" 참고) |
