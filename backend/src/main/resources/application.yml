@@ -9,4 +9,4 @@ server:
   port: 8080
   servlet:
     session:
-      timeout: 7d   # 로그인 세션 유지 기간
+      timeout: 1d   # 로그인 세션 유지 기간
