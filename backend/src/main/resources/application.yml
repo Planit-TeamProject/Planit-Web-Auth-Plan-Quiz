@@ -6,7 +6,7 @@ spring:
 # 서비스 계정 키는 src/main/resources/firebase-service-account.json (커밋 금지, .gitignore 참고).
 
 server:
-  port: 8080
+  port: 1557
   servlet:
     session:
       timeout: 1d   # 로그인 세션 유지 기간
